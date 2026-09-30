@@ -8,19 +8,23 @@ can be checked in the code.
 
 ## The short version
 
-AI Account Guard does not collect, store, sell, or send your personal data anywhere. It has no
-analytics, no tracking, and no servers. Everything it does happens inside your browser.
+AI Account Guard reads a small amount of information inside your browser to do its job, listed
+below. It does not save, sell, or send your personal data anywhere. It has no analytics, no
+tracking, and no servers. Everything it does happens inside your browser.
 
 ## What the extension reads, and why
 
 - **Email addresses typed into sign-in forms** on the AI services it covers (such as ChatGPT,
   Claude, and Perplexity). The extension checks the part after the "@" against your
   organization's approved domains, then discards it. Email addresses are never saved or sent.
-- **Which sign-in button you click** on those services (for example "Continue with Apple"), to
-  decide whether that sign-in method is allowed.
-- **The address of pages you open in a tab that started on a covered AI service**, only to tell
-  whether the tab is still part of an AI sign-in. Nothing about your browsing is saved beyond the
-  current browser session, and nothing is sent anywhere.
+- **Clicks and Enter key presses on those services**, so a sign-in can be checked before it is
+  sent. The extension does not record what you type or where you click.
+- **The label of the sign-in button you click** on those services (for example "Continue with
+  Apple"), to decide whether that sign-in method is allowed.
+- **The address of each page that opens in a tab**, to tell whether the tab is on a covered AI
+  service or part of an AI sign-in. The extension checks every page address as it loads, but it
+  keeps nothing about sites that are not AI services or sign-in pages. It only remembers which
+  open tabs are part of an AI sign-in (see below), and it never sends your browsing anywhere.
 
 ## What the extension stores
 
@@ -44,6 +48,20 @@ If your IT administrator turns on the "sign out on install" setting, the extensi
 cookies and site data for the covered AI services when it is first installed. This signs you
 out of those services so you can sign back in with your work account. It does not read that
 data, and it does not affect other websites.
+
+## Chrome Web Store User Data Policy
+
+The use of information received from AI Account Guard adheres to the
+[Chrome Web Store User Data Policy](https://developer.chrome.com/docs/webstore/program-policies),
+including the [Limited Use](https://developer.chrome.com/docs/webstore/program-policies/limited-use)
+requirements. In particular:
+
+- Information is used only to decide whether a sign-in on an AI service is allowed, which is the
+  extension's single purpose.
+- Information is never transferred to StratIT or anyone else.
+- Information is never used for advertising, and it is never sold.
+- No person, at StratIT or elsewhere, can read your information, because it never leaves your
+  browser.
 
 ## Your organization's role
 

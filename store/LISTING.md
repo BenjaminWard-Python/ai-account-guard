@@ -56,7 +56,7 @@ It protects Chrome only. For full coverage, also block other browsers and deskto
 
 | Asset | File |
 |---|---|
-| Store icon (128×128) | `extension/icons/icon128.png` |
+| Store icon (128×128) | `store/assets/store-icon-128.png` (96×96 artwork with 16px transparent padding, per Google's icon guidelines; source `store/assets/src/store-icon.svg`) |
 | Screenshot 1 | `store/assets/screenshot-1-block.png` |
 | Screenshot 2 | `store/assets/screenshot-2-settings.png` |
 | Screenshot 3 | `store/assets/screenshot-3-sso.png` |
@@ -85,12 +85,19 @@ the listing either way; add a StratIT support page here later if you make one.
 
 **Remote code:** No, I am not using remote code.
 
-**Data usage:** The extension reads email addresses typed into sign-in forms on covered AI
-services, but only compares the domain inside the browser. Nothing is stored or transmitted, and
-there are no analytics. When filling in the data-collection checkboxes, read the dashboard's
-definition of "collect" at submission time. If it covers data handled only on the device,
-declare "Personally identifiable information" and describe the on-device use above. Either
-way, certify all three statements (no selling, no unrelated use, no creditworthiness use).
+**Data usage:** Google counts data handled only on the device, so declare it (User Data FAQ #3).
+Tick these, and keep them in step with [docs/PRIVACY.md](../docs/PRIVACY.md):
+
+| Category | Why |
+|---|---|
+| Personally identifiable information | Reads email addresses typed into sign-in forms on covered AI services |
+| Web history | Checks the address of each page that loads in a tab, to tag AI sign-in tabs |
+| User activity | Listens for clicks and Enter key presses on covered AI services to stop a sign-in |
+| Website content | Reads sign-in button labels (e.g. "Continue with Apple") to classify them |
+
+Leave the other categories unticked, and certify all three statements (no selling, no unrelated
+use, no creditworthiness use). A mismatch between these boxes, the privacy policy and the code
+can get the whole publisher account suspended, so update all three together.
 
 **Privacy policy URL:** https://stratitsolutions.com/ai-account-guard/privacy/
 

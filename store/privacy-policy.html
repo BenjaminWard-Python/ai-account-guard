@@ -36,12 +36,13 @@
 <p><em>Last updated: September 30, 2026</em></p>
 <p>AI Account Guard is a browser extension that keeps people on work accounts when they sign in to AI services. It is published by StratIT Solutions LLC ("StratIT") and is open source, so everything below can be checked in the code.</p>
 <h2>The short version</h2>
-<p>AI Account Guard does not collect, store, sell, or send your personal data anywhere. It has no analytics, no tracking, and no servers. Everything it does happens inside your browser.</p>
+<p>AI Account Guard reads a small amount of information inside your browser to do its job, listed below. It does not save, sell, or send your personal data anywhere. It has no analytics, no tracking, and no servers. Everything it does happens inside your browser.</p>
 <h2>What the extension reads, and why</h2>
 <ul>
   <li><strong>Email addresses typed into sign-in forms</strong> on the AI services it covers (such as ChatGPT, Claude, and Perplexity). The extension checks the part after the "@" against your organization's approved domains, then discards it. Email addresses are never saved or sent.</li>
-  <li><strong>Which sign-in button you click</strong> on those services (for example "Continue with Apple"), to decide whether that sign-in method is allowed.</li>
-  <li><strong>The address of pages you open in a tab that started on a covered AI service</strong>, only to tell whether the tab is still part of an AI sign-in. Nothing about your browsing is saved beyond the current browser session, and nothing is sent anywhere.</li>
+  <li><strong>Clicks and Enter key presses on those services</strong>, so a sign-in can be checked before it is sent. The extension does not record what you type or where you click.</li>
+  <li><strong>The label of the sign-in button you click</strong> on those services (for example "Continue with Apple"), to decide whether that sign-in method is allowed.</li>
+  <li><strong>The address of each page that opens in a tab</strong>, to tell whether the tab is on a covered AI service or part of an AI sign-in. The extension checks every page address as it loads, but it keeps nothing about sites that are not AI services or sign-in pages. It only remembers which open tabs are part of an AI sign-in (see below), and it never sends your browsing anywhere.</li>
 </ul>
 <h2>What the extension stores</h2>
 <ul>
@@ -52,6 +53,14 @@
 <p>The extension makes no network requests of its own. When your organization allows "Sign in with Google" or "Sign in with Microsoft", the extension adds standard tenant-restriction headers to your browser's requests to Google or Microsoft sign-in pages. These headers contain your <strong>organization's approved email domains</strong> and, for Microsoft, your <strong>organization's tenant ID</strong>. They contain nothing about you personally. Google and Microsoft use them to allow only your organization's accounts.</p>
 <h2>Clearing sessions</h2>
 <p>If your IT administrator turns on the "sign out on install" setting, the extension clears cookies and site data for the covered AI services when it is first installed. This signs you out of those services so you can sign back in with your work account. It does not read that data, and it does not affect other websites.</p>
+<h2>Chrome Web Store User Data Policy</h2>
+<p>The use of information received from AI Account Guard adheres to the <a href="https://developer.chrome.com/docs/webstore/program-policies">Chrome Web Store User Data Policy</a>, including the <a href="https://developer.chrome.com/docs/webstore/program-policies/limited-use">Limited Use</a> requirements. In particular:</p>
+<ul>
+  <li>Information is used only to decide whether a sign-in on an AI service is allowed, which is the extension's single purpose.</li>
+  <li>Information is never transferred to StratIT or anyone else.</li>
+  <li>Information is never used for advertising, and it is never sold.</li>
+  <li>No person, at StratIT or elsewhere, can read your information, because it never leaves your browser.</li>
+</ul>
 <h2>Your organization's role</h2>
 <p>If your organization installed this extension, your IT administrator controls its settings. The extension does not report anything back to your organization.</p>
 <h2>Contact</h2>
