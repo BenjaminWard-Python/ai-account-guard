@@ -161,6 +161,10 @@
     if (info.kind === "loading") {
       title = "One moment";
       body = "Account protection is still loading. Please try again.";
+    } else if (!c.AllowedDomains.length) {
+      title = "AI Account Guard isn't set up yet";
+      body = `Signing in to ${provider.name} is blocked until approved email domains are configured. ` +
+        "Ask your IT team, or add your domain in the extension's settings.";
     } else if (info.kind === "sso") {
       title = `Signing in with ${info.idp.name} isn't allowed`;
       body = `${org} only allows ${provider.name} with your work account.`;

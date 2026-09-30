@@ -44,7 +44,7 @@
   <script src="assert.js"></script>
   <script>
     const G = AIGuard;
-    let activeConfig = G.normalizeConfig({ SsoPortalUrl: "https://myapps.microsoft.com", OrganizationName: "StratIT" });
+    let activeConfig = G.normalizeConfig({ AllowedDomains: ["example.org"], SsoPortalUrl: "https://myapps.microsoft.com", OrganizationName: "Example Org" });
 
     // Mock of the chrome APIs the content script uses.
     globalThis.chrome = {
@@ -88,10 +88,10 @@
       reset(); $("email1").value = "me@gmail.com"; $("submit1").click(); expectBlocked("form1");
     });
     test("form: work email allowed", () => {
-      reset(); $("email1").value = "ben@stratitsolutions.com"; $("submit1").click(); expectAllowed("form1");
+      reset(); $("email1").value = "ben@example.org"; $("submit1").click(); expectAllowed("form1");
     });
     test("form: look-alike domain blocked", () => {
-      reset(); $("email1").value = "ben@stratitsolutions.com.evil.io"; $("submit1").click(); expectBlocked("form1");
+      reset(); $("email1").value = "ben@example.org.evil.io"; $("submit1").click(); expectBlocked("form1");
     });
     test("form: requestSubmit() with personal email blocked", () => {
       reset(); $("email1").value = "me@gmail.com"; $("form1").requestSubmit(); expectBlocked("form1");
@@ -106,7 +106,7 @@
       reset(); $("email2").value = "me@outlook.com"; $("continue2").click(); expectBlocked("continue2");
     });
     test("SPA: work email (mixed case) allowed", () => {
-      reset(); $("email2").value = "Ben@StratITSolutions.com"; $("continue2").click(); expectAllowed("continue2");
+      reset(); $("email2").value = "Ben@Example.org"; $("continue2").click(); expectAllowed("continue2");
     });
     test("shadow DOM: personal email blocked", () => {
       reset(); shadow.getElementById("email3").value = "me@gmail.com"; shadow.getElementById("submit3").click(); expectBlocked("submit3");
@@ -129,18 +129,26 @@
       assert(!root.querySelector("img"), "markup must not be injected");
       assert(root.textContent.includes("<img src=x"), "email shown as text");
       assertEqual(root.querySelector("a").href, "https://myapps.microsoft.com/");
-      assert(root.textContent.includes("StratIT only allows ChatGPT"), "org + service named");
+      assert(root.textContent.includes("Example Org only allows ChatGPT"), "org + service named");
     });
 
     test("Microsoft allowed once tenant id configured", async () => {
-      activeConfig = G.normalizeConfig({ AllowMicrosoftSignIn: true, MicrosoftTenantId: "tid" });
+      activeConfig = G.normalizeConfig({ AllowedDomains: ["example.org"], AllowMicrosoftSignIn: true, MicrosoftTenantId: "tid" });
       await reloadConfig();
       reset(); $("microsoft").click(); expectAllowed("microsoft");
     });
     test("service mode 'off' disables checks", async () => {
-      activeConfig = G.normalizeConfig({ ProviderModes: { chatgpt: "off" } });
+      activeConfig = G.normalizeConfig({ AllowedDomains: ["example.org"], ProviderModes: { chatgpt: "off" } });
       await reloadConfig();
       reset(); $("email1").value = "me@gmail.com"; $("submit1").click(); expectAllowed("form1");
+    });
+
+    test("unconfigured: every sign-in blocked with a set-up message", async () => {
+      activeConfig = G.normalizeConfig({});
+      await reloadConfig();
+      reset(); $("email1").value = "ben@example.org"; $("submit1").click(); expectBlocked("form1");
+      assert(overlay().shadowRoot.textContent.includes("isn't set up yet"), "explains setup is needed");
+      reset(); $("google").click(); expectBlocked("google");
     });
 
     // The content script listens for storage changes to reload config; the mock

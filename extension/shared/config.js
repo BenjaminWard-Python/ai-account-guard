@@ -8,8 +8,8 @@
 
   const DEFAULTS = Object.freeze({
     // Email domains whose accounts may sign in. "*.example.org" also allows subdomains.
-    // An empty list blocks every sign-in on covered AI services.
-    AllowedDomains: ["stratitsolutions.com"],
+    // Empty until an admin sets it; an empty list blocks every sign-in on covered AI services.
+    AllowedDomains: [],
     OrganizationName: "",
     // Where to send people when a sign-in is blocked (e.g. Okta/Entra/Google app portal).
     SsoPortalUrl: "",

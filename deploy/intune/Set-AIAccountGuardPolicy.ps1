@@ -15,8 +15,8 @@ $ExtensionId   = "EXTENSION_ID"    # Chrome Web Store ID of AI Account Guard
 $UpdateUrl     = "https://clients2.google.com/service/update2/crx"
 
 $Policy = [ordered]@{
-  AllowedDomains         = @("stratitsolutions.com")
-  OrganizationName       = "StratIT Solutions"
+  AllowedDomains         = @("example.org")
+  OrganizationName       = "Example Org"
   SsoPortalUrl           = "https://myapps.microsoft.com"
   SupportMessage         = "Questions? Contact IT."
   AllowGoogleSignIn      = $false

@@ -35,7 +35,9 @@
     }[source];
 
     const warnings = [];
-    if (!config.AllowedDomains.length) warnings.push("No allowed domains are set, so every sign-in on covered AI services is blocked.");
+    if (!config.AllowedDomains.length) {
+      warnings.push("Add your organization's email domain to get started. Until one is set, every sign-in on covered AI services is blocked.");
+    }
     if (config.AllowMicrosoftSignIn && !config.MicrosoftTenantId) warnings.push("Microsoft sign-in stays blocked until a tenant ID is set.");
     $("warning").textContent = warnings.join(" ");
     $("warning").hidden = !warnings.length;

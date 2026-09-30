@@ -15,21 +15,23 @@
   <script src="assert.js"></script>
   <script>
     const G = AIGuard;
-    const cfg = (overrides) => G.normalizeConfig(overrides || {});
+    const cfg = (overrides) => G.normalizeConfig({ AllowedDomains: ["example.org"], ...overrides });
 
     // ---- config ----
-    test("default allows stratitsolutions.com", () => {
-      assertEqual(cfg().AllowedDomains, ["stratitsolutions.com"]);
+    test("no domains are allowed until an admin configures them", () => {
+      const c = G.normalizeConfig({});
+      assertEqual(c.AllowedDomains, []);
+      assert(!G.isEmailAllowed("someone@example.org", c));
     });
     test("email domain matching is exact and case-insensitive", () => {
       const c = cfg();
-      assert(G.isEmailAllowed("ben@stratitsolutions.com", c));
-      assert(G.isEmailAllowed("  BEN@StratITSolutions.COM ", c));
+      assert(G.isEmailAllowed("ben@example.org", c));
+      assert(G.isEmailAllowed("  BEN@Example.ORG ", c));
       assert(!G.isEmailAllowed("ben@gmail.com", c));
-      assert(!G.isEmailAllowed("ben@stratitsolutions.com.evil.com", c), "suffix attack");
-      assert(!G.isEmailAllowed("ben@evilstratitsolutions.com", c), "prefix attack");
-      assert(!G.isEmailAllowed("ben@mail.stratitsolutions.com", c), "subdomain not allowed without *.");
-      assert(!G.isEmailAllowed("stratitsolutions.com", c), "no @");
+      assert(!G.isEmailAllowed("ben@example.org.evil.com", c), "suffix attack");
+      assert(!G.isEmailAllowed("ben@evilexample.org", c), "prefix attack");
+      assert(!G.isEmailAllowed("ben@mail.example.org", c), "subdomain not allowed without *.");
+      assert(!G.isEmailAllowed("example.org", c), "no @");
       assert(!G.isEmailAllowed("ben@", c));
     });
     test("wildcard entries allow the domain and its subdomains", () => {
@@ -40,7 +42,7 @@
     });
     test("unicode look-alike domains are not treated as allowed", () => {
       // Cyrillic 'а' in place of Latin 'a'
-      assert(!G.isEmailAllowed("ben@strаtitsolutions.com", cfg()));
+      assert(!G.isEmailAllowed("ben@exаmple.org", cfg()));
     });
     test("allowed domains are normalized and junk dropped", () => {
       assertEqual(cfg({ AllowedDomains: ["@Example.ORG", " *.Foo.com ", "", "bad domain", "a@b.com"] }).AllowedDomains,
@@ -49,7 +51,7 @@
     });
     test("empty AllowedDomains blocks everything", () => {
       const c = cfg({ AllowedDomains: [] });
-      assert(!G.isEmailAllowed("ben@stratitsolutions.com", c));
+      assert(!G.isEmailAllowed("ben@example.org", c));
       assert(!G.identityProviderAllowed("google", c), "google needs at least one domain");
     });
     test("portal URL must be http(s)", () => {
@@ -111,7 +113,7 @@
 
       const g = find(rules, (r) => r.action.type === "modifyHeaders");
       assertEqual(g.length, 1);
-      assertEqual(g[0].action.requestHeaders[0], { header: "X-GoogApps-Allowed-Domains", operation: "set", value: "stratitsolutions.com" });
+      assertEqual(g[0].action.requestHeaders[0], { header: "X-GoogApps-Allowed-Domains", operation: "set", value: "example.org" });
       assert(g[0].condition.initiatorDomains.includes("gemini.google.com"));
       assert(g[0].condition.resourceTypes.includes("main_frame"), "headers must apply to navigations");
     });

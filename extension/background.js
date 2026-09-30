@@ -108,7 +108,11 @@ chrome.runtime.onStartup.addListener(() => syncAll());
 chrome.runtime.onInstalled.addListener(async (details) => {
   await setTaggedTabs([]);
   await syncAll();
-  if (details.reason === "install") await signOutIfConfigured();
+  if (details.reason === "install") {
+    await signOutIfConfigured();
+    // Self-installed and not configured yet: open settings so the user can add a domain.
+    if ((await G.loadConfig()).source === "default") chrome.runtime.openOptionsPage();
+  }
 });
 
 // Clears cookies and site storage for covered AI services so personal sessions that

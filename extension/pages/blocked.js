@@ -13,6 +13,10 @@
   if (params.get("reason") === "site" && provider) {
     $("title").textContent = `${provider.name} is blocked`;
     $("body").textContent = `${org} doesn't allow ${provider.name} on this browser.`;
+  } else if (!config.AllowedDomains.length) {
+    $("title").textContent = "AI Account Guard isn't set up yet";
+    $("body").textContent = "Signing in to AI services is blocked until approved email domains are configured. " +
+      "Ask your IT team, or add your domain in the extension's settings.";
   } else if (params.get("reason") === "sso" && idp) {
     $("title").textContent = `Signing in with ${idp.name} isn't allowed here`;
     $("body").textContent = `${org} only allows AI services with your work account.`;

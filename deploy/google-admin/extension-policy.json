@@ -1,6 +1,6 @@
 {
-  "AllowedDomains": { "Value": ["stratitsolutions.com"] },
-  "OrganizationName": { "Value": "StratIT Solutions" },
+  "AllowedDomains": { "Value": ["example.org"] },
+  "OrganizationName": { "Value": "Example Org" },
   "SsoPortalUrl": { "Value": "https://accounts.google.com/" },
   "SupportMessage": { "Value": "Questions? Contact IT." },
   "AllowGoogleSignIn": { "Value": true },

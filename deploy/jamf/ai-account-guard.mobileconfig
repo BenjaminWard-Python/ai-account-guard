@@ -11,7 +11,7 @@
   <key>PayloadDisplayName</key>
   <string>AI Account Guard</string>
   <key>PayloadIdentifier</key>
-  <string>com.stratitsolutions.aiaccountguard</string>
+  <string>org.example.aiaccountguard</string>
   <key>PayloadType</key>
   <string>Configuration</string>
   <key>PayloadScope</key>
@@ -27,7 +27,7 @@
       <key>PayloadType</key>
       <string>com.google.Chrome</string>
       <key>PayloadIdentifier</key>
-      <string>com.stratitsolutions.aiaccountguard.install</string>
+      <string>org.example.aiaccountguard.install</string>
       <key>PayloadUUID</key>
       <string>1B2C3D4E-5F60-4718-8A9B-0C1D2E3F4A51</string>
       <key>PayloadVersion</key>
@@ -42,17 +42,17 @@
       <key>PayloadType</key>
       <string>com.google.Chrome.extensions.EXTENSION_ID</string>
       <key>PayloadIdentifier</key>
-      <string>com.stratitsolutions.aiaccountguard.policy</string>
+      <string>org.example.aiaccountguard.policy</string>
       <key>PayloadUUID</key>
       <string>2C3D4E5F-6071-4829-9B0C-1D2E3F4A5B62</string>
       <key>PayloadVersion</key>
       <integer>1</integer>
       <key>AllowedDomains</key>
       <array>
-        <string>stratitsolutions.com</string>
+        <string>example.org</string>
       </array>
       <key>OrganizationName</key>
-      <string>StratIT Solutions</string>
+      <string>Example Org</string>
       <key>SsoPortalUrl</key>
       <string>https://myapps.microsoft.com</string>
       <key>SupportMessage</key>

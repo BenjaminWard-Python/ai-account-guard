@@ -9,6 +9,8 @@ Built for small organizations (nonprofits, local government, small businesses) t
 this control without an enterprise browser or SSE platform. IT configures it centrally
 through Intune, Jamf, or the Google Admin console.
 
+**New here? Start with the [Getting started guide](docs/GETTING_STARTED.md).**
+
 ## How it works
 
 | Layer | What it does |
@@ -30,7 +32,7 @@ the settings page is read-only.
 
 | Key | Type | Default | Description |
 |---|---|---|---|
-| `AllowedDomains` | list | `["stratitsolutions.com"]` | Email domains allowed to sign in. `*.example.org` also allows subdomains. Empty = block every sign-in. |
+| `AllowedDomains` | list | *(empty)* | Email domains allowed to sign in. `*.example.org` also allows subdomains. **Must be set**: until it is, every sign-in on covered services is blocked. |
 | `OrganizationName` | string | | Shown in block messages. |
 | `SsoPortalUrl` | string | | Company sign-in portal; shown as "Go to company sign-in". |
 | `SupportMessage` | string | | Extra text on block messages (e.g. how to reach IT). |
@@ -45,8 +47,8 @@ the settings page is read-only.
 
 1. Open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked**, and select
    the `extension/` folder.
-2. Click the extension's toolbar icon to open settings. Allowed domain defaults to
-   `stratitsolutions.com`.
+2. The settings page opens on install (or click the toolbar icon). Add your organization's
+   email domain and save.
 3. Visit chatgpt.com or claude.ai, start signing in with a personal address, and confirm the notice.
 
 To test managed policy on a Mac without Jamf, install the profile from
