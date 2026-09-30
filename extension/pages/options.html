@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Account Guard settings</title>
+  <link rel="stylesheet" href="page.css">
+</head>
+<body>
+  <main>
+    <div class="card">
+      <h1>AI Account Guard</h1>
+      <p class="muted" id="source"></p>
+      <p class="notice" id="warning" hidden></p>
+
+      <form id="form">
+        <fieldset id="fields">
+          <label for="AllowedDomains">Allowed email domains
+            <div class="hint">One per line. Use *.example.org to also allow subdomains.</div>
+          </label>
+          <textarea id="AllowedDomains" spellcheck="false"></textarea>
+
+          <label for="OrganizationName">Organization name</label>
+          <input type="text" id="OrganizationName">
+
+          <label for="SsoPortalUrl">Company sign-in portal URL
+            <div class="hint">Shown as "Go to company sign-in" when something is blocked.</div>
+          </label>
+          <input type="url" id="SsoPortalUrl" placeholder="https://myapps.microsoft.com">
+
+          <label for="SupportMessage">Support message</label>
+          <input type="text" id="SupportMessage" placeholder="Questions? Contact IT at helpdesk@example.org">
+
+          <label class="check"><input type="checkbox" id="AllowGoogleSignIn">
+            <span>Allow "Sign in with Google" for Google Workspace accounts in the allowed domains</span></label>
+
+          <label class="check"><input type="checkbox" id="AllowMicrosoftSignIn">
+            <span>Allow "Sign in with Microsoft" for your Microsoft 365 tenant</span></label>
+
+          <label for="MicrosoftTenantId">Microsoft tenant ID
+            <div class="hint">Required for Microsoft sign-in. Entra admin center → Overview → Tenant ID.</div>
+          </label>
+          <input type="text" id="MicrosoftTenantId" spellcheck="false" placeholder="00000000-0000-0000-0000-000000000000">
+
+          <label for="TenantRestrictionScope">Apply Google/Microsoft account restrictions to</label>
+          <select id="TenantRestrictionScope">
+            <option value="ai-sites">Sign-ins that start from AI services only</option>
+            <option value="all-browsing">All Google and Microsoft sign-ins in this browser</option>
+          </select>
+
+          <h2>AI services</h2>
+          <table><tbody id="providers"></tbody></table>
+
+          <div class="actions">
+            <button type="submit">Save</button>
+            <span class="status" id="status" role="status"></span>
+          </div>
+        </fieldset>
+      </form>
+    </div>
+  </main>
+  <script src="../shared/providers.js"></script>
+  <script src="../shared/config.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+{
+  "type": "object",
+  "properties": {
+    "AllowedDomains": {
+      "title": "Allowed email domains",
+      "description": "Email domains whose accounts may sign in to covered AI services. Prefix with *. to also allow subdomains (e.g. *.example.org). An empty list blocks every sign-in.",
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "OrganizationName": {
+      "title": "Organization name",
+      "description": "Shown to users on block messages.",
+      "type": "string"
+    },
+    "SsoPortalUrl": {
+      "title": "Company sign-in portal URL",
+      "description": "http(s) URL of your SSO portal (e.g. https://myapps.microsoft.com). Shown as a 'Go to company sign-in' button when something is blocked.",
+      "type": "string"
+    },
+    "SupportMessage": {
+      "title": "Support message",
+      "description": "Extra text shown on block messages, such as how to contact IT.",
+      "type": "string"
+    },
+    "AllowGoogleSignIn": {
+      "title": "Allow Sign in with Google",
+      "description": "Allow 'Sign in with Google' for Google Workspace accounts in AllowedDomains. Personal Google accounts are refused by Google via the X-GoogApps-Allowed-Domains header.",
+      "type": "boolean"
+    },
+    "AllowMicrosoftSignIn": {
+      "title": "Allow Sign in with Microsoft",
+      "description": "Allow 'Sign in with Microsoft' for your Entra tenant only (Microsoft tenant restrictions). Requires MicrosoftTenantId. Personal Microsoft accounts are always blocked.",
+      "type": "boolean"
+    },
+    "MicrosoftTenantId": {
+      "title": "Microsoft tenant ID",
+      "description": "Your Entra directory (tenant) ID. Required for AllowMicrosoftSignIn.",
+      "type": "string"
+    },
+    "TenantRestrictionScope": {
+      "title": "Tenant restriction scope",
+      "description": "'ai-sites' applies Google/Microsoft account restrictions only to sign-ins started from covered AI services. 'all-browsing' applies them to every Google/Microsoft sign-in in the browser.",
+      "type": "string",
+      "enum": ["ai-sites", "all-browsing"]
+    },
+    "ProviderModes": {
+      "title": "Per-service mode",
+      "description": "Override the mode for individual services by id (chatgpt, claude, gemini, copilot, perplexity, deepseek, grok, mistral, poe, meta). 'enforce' = work accounts only, 'block' = block the service, 'off' = do not manage.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "enum": ["enforce", "block", "off"]
+      }
+    },
+    "SignOutOnInstall": {
+      "title": "Sign out of AI services on install",
+      "description": "When the extension is first installed, clear cookies and site data for covered AI services so existing personal sessions end.",
+      "type": "boolean"
+    }
+  }
+}

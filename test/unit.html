@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>AI Account Guard unit tests</title>
+  <link rel="stylesheet" href="test.css">
+</head>
+<body>
+  <h1>Unit tests: config and rules</h1>
+  <p id="summary"></p>
+  <ul id="results"></ul>
+  <script src="../extension/shared/providers.js"></script>
+  <script src="../extension/shared/config.js"></script>
+  <script src="../extension/shared/rules.js"></script>
+  <script src="assert.js"></script>
+  <script>
+    const G = AIGuard;
+    const cfg = (overrides) => G.normalizeConfig(overrides || {});
+
+    // ---- config ----
+    test("default allows stratitsolutions.com", () => {
+      assertEqual(cfg().AllowedDomains, ["stratitsolutions.com"]);
+    });
+    test("email domain matching is exact and case-insensitive", () => {
+      const c = cfg();
+      assert(G.isEmailAllowed("ben@stratitsolutions.com", c));
+      assert(G.isEmailAllowed("  BEN@StratITSolutions.COM ", c));
+      assert(!G.isEmailAllowed("ben@gmail.com", c));
+      assert(!G.isEmailAllowed("ben@stratitsolutions.com.evil.com", c), "suffix attack");
+      assert(!G.isEmailAllowed("ben@evilstratitsolutions.com", c), "prefix attack");
+      assert(!G.isEmailAllowed("ben@mail.stratitsolutions.com", c), "subdomain not allowed without *.");
+      assert(!G.isEmailAllowed("stratitsolutions.com", c), "no @");
+      assert(!G.isEmailAllowed("ben@", c));
+    });
+    test("wildcard entries allow the domain and its subdomains", () => {
+      const c = cfg({ AllowedDomains: ["*.county.gov"] });
+      assert(G.isEmailAllowed("a@county.gov", c));
+      assert(G.isEmailAllowed("a@parks.county.gov", c));
+      assert(!G.isEmailAllowed("a@badcounty.gov", c));
+    });
+    test("unicode look-alike domains are not treated as allowed", () => {
+      // Cyrillic 'а' in place of Latin 'a'
+      assert(!G.isEmailAllowed("ben@strаtitsolutions.com", cfg()));
+    });
+    test("allowed domains are normalized and junk dropped", () => {
+      assertEqual(cfg({ AllowedDomains: ["@Example.ORG", " *.Foo.com ", "", "bad domain", "a@b.com"] }).AllowedDomains,
+        ["example.org", "*.foo.com"]);
+      assertEqual(cfg({ AllowedDomains: "a.org, b.org" }).AllowedDomains, ["a.org", "b.org"]);
+    });
+    test("empty AllowedDomains blocks everything", () => {
+      const c = cfg({ AllowedDomains: [] });
+      assert(!G.isEmailAllowed("ben@stratitsolutions.com", c));
+      assert(!G.identityProviderAllowed("google", c), "google needs at least one domain");
+    });
+    test("portal URL must be http(s)", () => {
+      assertEqual(cfg({ SsoPortalUrl: "javascript:alert(1)" }).SsoPortalUrl, "");
+      assertEqual(cfg({ SsoPortalUrl: "https://myapps.microsoft.com" }).SsoPortalUrl, "https://myapps.microsoft.com/");
+    });
+    test("provider modes fall back to defaults and ignore bad values", () => {
+      const c = cfg({ ProviderModes: { deepseek: "block", chatgpt: "nonsense" } });
+      assertEqual(c.ProviderModes.deepseek, "block");
+      assertEqual(c.ProviderModes.chatgpt, "enforce");
+      assertEqual(c.ProviderModes.meta, "block");
+    });
+    test("microsoft sign-in requires a tenant id", () => {
+      assert(!G.identityProviderAllowed("microsoft", cfg({ AllowMicrosoftSignIn: true })));
+      assert(G.identityProviderAllowed("microsoft", cfg({ AllowMicrosoftSignIn: true, MicrosoftTenantId: "abc" })));
+      assert(!G.identityProviderAllowed("microsoft-personal", cfg({ AllowMicrosoftSignIn: true, MicrosoftTenantId: "abc" })));
+    });
+    test("provider lookup by host", () => {
+      assertEqual(G.providerForHost("chatgpt.com").id, "chatgpt");
+      assertEqual(G.providerForHost("auth.openai.com").id, "chatgpt");
+      assertEqual(G.providerForHost("www.perplexity.ai").id, "perplexity");
+      assertEqual(G.providerForHost("gemini.google.com").id, "gemini");
+      assertEqual(G.providerForHost("mail.google.com"), null);
+      assertEqual(G.providerForHost("notchatgpt.com"), null);
+    });
+
+    // ---- rules ----
+    const find = (rules, pred) => rules.filter(pred);
+    const redirectsTo = (r, s) => r.action.type === "redirect" && r.action.redirect.extensionPath.includes(s);
+
+    function validate(rules) {
+      const ids = new Set();
+      for (const r of rules) {
+        assert(Number.isInteger(r.id) && r.id > 0, "id " + r.id);
+        assert(!ids.has(r.id), "duplicate id " + r.id);
+        ids.add(r.id);
+        assert(r.condition.resourceTypes && r.condition.resourceTypes.length, "resourceTypes");
+        for (const d of [...(r.condition.requestDomains || []), ...(r.condition.initiatorDomains || [])]) {
+          assert(d === d.toLowerCase() && !d.includes("*"), "bad domain " + d);
+        }
+        for (const h of (r.action.requestHeaders || [])) assert(h.value, "empty header " + h.header);
+      }
+    }
+
+    test("default config: blocked sites, blocked SSO, google header scoped to AI sites", () => {
+      const rules = G.buildDynamicRules(cfg());
+      validate(rules);
+      assert(find(rules, (r) => redirectsTo(r, "reason=site&provider=meta")).length === 1, "meta blocked");
+      assert(!find(rules, (r) => redirectsTo(r, "provider=chatgpt")).length, "chatgpt not blocked");
+
+      const apple = find(rules, (r) => redirectsTo(r, "idp=apple"));
+      assertEqual(apple.length, 1);
+      assert(apple[0].condition.initiatorDomains.includes("chatgpt.com"), "apple rule scoped to AI initiators");
+      assert(!apple[0].condition.initiatorDomains.includes("meta.ai"), "blocked sites are not AI context");
+
+      assert(find(rules, (r) => redirectsTo(r, "idp=microsoft")).length, "microsoft blocked w/o tenant");
+      assert(find(rules, (r) => redirectsTo(r, "idp=microsoft-personal")).length, "MSA always blocked");
+      assert(!find(rules, (r) => redirectsTo(r, "idp=google")).length, "google allowed by default");
+
+      const g = find(rules, (r) => r.action.type === "modifyHeaders");
+      assertEqual(g.length, 1);
+      assertEqual(g[0].action.requestHeaders[0], { header: "X-GoogApps-Allowed-Domains", operation: "set", value: "stratitsolutions.com" });
+      assert(g[0].condition.initiatorDomains.includes("gemini.google.com"));
+      assert(g[0].condition.resourceTypes.includes("main_frame"), "headers must apply to navigations");
+    });
+
+    test("all-browsing scope applies headers without an initiator condition", () => {
+      const rules = G.buildDynamicRules(cfg({ TenantRestrictionScope: "all-browsing" }));
+      validate(rules);
+      const g = find(rules, (r) => r.action.type === "modifyHeaders");
+      assertEqual(g.length, 1);
+      assertEqual(g[0].condition.initiatorDomains, undefined);
+    });
+
+    test("microsoft allowed: tenant headers, work sign-in unblocked, personal still blocked", () => {
+      const rules = G.buildDynamicRules(cfg({ AllowMicrosoftSignIn: true, MicrosoftTenantId: "tid-123", AllowedDomains: ["a.org", "*.b.org"] }));
+      validate(rules);
+      assert(!find(rules, (r) => redirectsTo(r, "idp=microsoft&") || r.action.redirect?.extensionPath.endsWith("idp=microsoft")).length);
+      assert(find(rules, (r) => redirectsTo(r, "idp=microsoft-personal")).length);
+      const ms = find(rules, (r) => r.action.requestHeaders?.some((h) => h.header === "Restrict-Access-Context"))[0];
+      assertEqual(ms.action.requestHeaders, [
+        { header: "Restrict-Access-To-Tenants", operation: "set", value: "a.org,b.org" },
+        { header: "Restrict-Access-Context", operation: "set", value: "tid-123" },
+      ]);
+    });
+
+    test("google disallowed: google sign-in blocked, no header", () => {
+      const rules = G.buildDynamicRules(cfg({ AllowGoogleSignIn: false }));
+      assert(find(rules, (r) => redirectsTo(r, "idp=google")).length);
+      assert(!find(rules, (r) => r.action.type === "modifyHeaders").length);
+    });
+
+    test("session rules mirror context rules for tagged tabs", () => {
+      assertEqual(G.buildSessionRules(cfg(), []), []);
+      const rules = G.buildSessionRules(cfg(), [7, 9]);
+      validate(rules);
+      assert(rules.length > 0);
+      assert(rules.every((r) => r.id > 10000 && JSON.stringify(r.condition.tabIds) === "[7,9]" && !r.condition.initiatorDomains));
+      const dynamicContext = G.buildDynamicRules(cfg()).filter((r) => r.condition.initiatorDomains);
+      assertEqual(rules.length, dynamicContext.length);
+    });
+
+    test("all services off: no AI context rules", () => {
+      const modes = Object.fromEntries(G.PROVIDERS.map((p) => [p.id, "off"]));
+      assertEqual(G.buildDynamicRules(cfg({ ProviderModes: modes })), []);
+    });
+
+    run();
+  </script>
+</body>
+</html>

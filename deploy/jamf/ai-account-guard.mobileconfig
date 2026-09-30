@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  AI Account Guard for Google Chrome on macOS.
+  Upload in Jamf Pro: Computers > Configuration Profiles > New > Upload.
+  Replace EXTENSION_ID (2 places below) and the policy values below before uploading.
+  Replace the two PayloadUUIDs with fresh values (run `uuidgen`) if you make copies.
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>PayloadDisplayName</key>
+  <string>AI Account Guard</string>
+  <key>PayloadIdentifier</key>
+  <string>com.stratitsolutions.aiaccountguard</string>
+  <key>PayloadType</key>
+  <string>Configuration</string>
+  <key>PayloadScope</key>
+  <string>System</string>
+  <key>PayloadUUID</key>
+  <string>6E5C3B0A-8F7D-4E43-9C1B-2A4B5C6D7E80</string>
+  <key>PayloadVersion</key>
+  <integer>1</integer>
+  <key>PayloadContent</key>
+  <array>
+    <!-- Force-install the extension -->
+    <dict>
+      <key>PayloadType</key>
+      <string>com.google.Chrome</string>
+      <key>PayloadIdentifier</key>
+      <string>com.stratitsolutions.aiaccountguard.install</string>
+      <key>PayloadUUID</key>
+      <string>1B2C3D4E-5F60-4718-8A9B-0C1D2E3F4A51</string>
+      <key>PayloadVersion</key>
+      <integer>1</integer>
+      <key>ExtensionInstallForcelist</key>
+      <array>
+        <string>EXTENSION_ID;https://clients2.google.com/service/update2/crx</string>
+      </array>
+    </dict>
+    <!-- Extension policy (read by the extension via chrome.storage.managed) -->
+    <dict>
+      <key>PayloadType</key>
+      <string>com.google.Chrome.extensions.EXTENSION_ID</string>
+      <key>PayloadIdentifier</key>
+      <string>com.stratitsolutions.aiaccountguard.policy</string>
+      <key>PayloadUUID</key>
+      <string>2C3D4E5F-6071-4829-9B0C-1D2E3F4A5B62</string>
+      <key>PayloadVersion</key>
+      <integer>1</integer>
+      <key>AllowedDomains</key>
+      <array>
+        <string>stratitsolutions.com</string>
+      </array>
+      <key>OrganizationName</key>
+      <string>StratIT Solutions</string>
+      <key>SsoPortalUrl</key>
+      <string>https://myapps.microsoft.com</string>
+      <key>SupportMessage</key>
+      <string>Questions? Contact IT.</string>
+      <key>AllowGoogleSignIn</key>
+      <false/>
+      <key>AllowMicrosoftSignIn</key>
+      <true/>
+      <key>MicrosoftTenantId</key>
+      <string>00000000-0000-0000-0000-000000000000</string>
+      <key>TenantRestrictionScope</key>
+      <string>ai-sites</string>
+      <key>ProviderModes</key>
+      <dict>
+        <key>deepseek</key>
+        <string>block</string>
+      </dict>
+      <key>SignOutOnInstall</key>
+      <true/>
+    </dict>
+  </array>
+</dict>
+</plist>

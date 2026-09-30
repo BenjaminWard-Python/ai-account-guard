@@ -1,0 +1,166 @@
+{
+  "manifest_version": 3,
+  "name": "AI Account Guard",
+  "version": "0.1.0",
+  "description": "Only allow work accounts on ChatGPT, Claude, Gemini, Copilot and other AI services.",
+  "minimum_chrome_version": "121",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_title": "AI Account Guard",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png"
+    }
+  },
+  "permissions": [
+    "storage",
+    "declarativeNetRequest",
+    "webNavigation",
+    "browsingData"
+  ],
+  "host_permissions": [
+    "https://*.accounts.google.com/*",
+    "https://*.aistudio.google.com/*",
+    "https://*.appleid.apple.com/*",
+    "https://*.auth.openai.com/*",
+    "https://*.auth0.openai.com/*",
+    "https://*.chat.openai.com/*",
+    "https://*.chatgpt.com/*",
+    "https://*.claude.ai/*",
+    "https://*.console.anthropic.com/*",
+    "https://*.copilot.microsoft.com/*",
+    "https://*.deepseek.com/*",
+    "https://*.discord.com/*",
+    "https://*.facebook.com/*",
+    "https://*.gemini.google.com/*",
+    "https://*.github.com/*",
+    "https://*.google.com/*",
+    "https://*.grok.com/*",
+    "https://*.login.live.com/*",
+    "https://*.login.microsoft.com/*",
+    "https://*.login.microsoftonline.com/*",
+    "https://*.login.windows.net/*",
+    "https://*.meta.ai/*",
+    "https://*.mistral.ai/*",
+    "https://*.notebooklm.google.com/*",
+    "https://*.open.weixin.qq.com/*",
+    "https://*.perplexity.ai/*",
+    "https://*.platform.claude.com/*",
+    "https://*.platform.openai.com/*",
+    "https://*.poe.com/*",
+    "https://*.twitter.com/*",
+    "https://*.x.ai/*",
+    "https://*.x.com/*",
+    "https://accounts.google.com/*",
+    "https://aistudio.google.com/*",
+    "https://appleid.apple.com/*",
+    "https://auth.openai.com/*",
+    "https://auth0.openai.com/*",
+    "https://chat.openai.com/*",
+    "https://chatgpt.com/*",
+    "https://claude.ai/*",
+    "https://console.anthropic.com/*",
+    "https://copilot.microsoft.com/*",
+    "https://deepseek.com/*",
+    "https://discord.com/*",
+    "https://facebook.com/*",
+    "https://gemini.google.com/*",
+    "https://github.com/*",
+    "https://google.com/*",
+    "https://grok.com/*",
+    "https://login.live.com/*",
+    "https://login.microsoft.com/*",
+    "https://login.microsoftonline.com/*",
+    "https://login.windows.net/*",
+    "https://meta.ai/*",
+    "https://mistral.ai/*",
+    "https://notebooklm.google.com/*",
+    "https://open.weixin.qq.com/*",
+    "https://perplexity.ai/*",
+    "https://platform.claude.com/*",
+    "https://platform.openai.com/*",
+    "https://poe.com/*",
+    "https://twitter.com/*",
+    "https://x.ai/*",
+    "https://x.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://aistudio.google.com/*",
+        "https://*.aistudio.google.com/*",
+        "https://auth.openai.com/*",
+        "https://*.auth.openai.com/*",
+        "https://auth0.openai.com/*",
+        "https://*.auth0.openai.com/*",
+        "https://chat.openai.com/*",
+        "https://*.chat.openai.com/*",
+        "https://chatgpt.com/*",
+        "https://*.chatgpt.com/*",
+        "https://claude.ai/*",
+        "https://*.claude.ai/*",
+        "https://console.anthropic.com/*",
+        "https://*.console.anthropic.com/*",
+        "https://copilot.microsoft.com/*",
+        "https://*.copilot.microsoft.com/*",
+        "https://deepseek.com/*",
+        "https://*.deepseek.com/*",
+        "https://gemini.google.com/*",
+        "https://*.gemini.google.com/*",
+        "https://grok.com/*",
+        "https://*.grok.com/*",
+        "https://meta.ai/*",
+        "https://*.meta.ai/*",
+        "https://mistral.ai/*",
+        "https://*.mistral.ai/*",
+        "https://notebooklm.google.com/*",
+        "https://*.notebooklm.google.com/*",
+        "https://perplexity.ai/*",
+        "https://*.perplexity.ai/*",
+        "https://platform.claude.com/*",
+        "https://*.platform.claude.com/*",
+        "https://platform.openai.com/*",
+        "https://*.platform.openai.com/*",
+        "https://poe.com/*",
+        "https://*.poe.com/*",
+        "https://x.ai/*",
+        "https://*.x.ai/*"
+      ],
+      "js": [
+        "shared/providers.js",
+        "shared/config.js",
+        "content/content.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "options_ui": {
+    "page": "pages/options.html",
+    "open_in_tab": true
+  },
+  "storage": {
+    "managed_schema": "schema.json"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "pages/blocked.html",
+        "pages/blocked.js",
+        "pages/page.css",
+        "shared/providers.js",
+        "shared/config.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
+}

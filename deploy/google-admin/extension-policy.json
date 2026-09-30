@@ -1,0 +1,11 @@
+{
+  "AllowedDomains": { "Value": ["stratitsolutions.com"] },
+  "OrganizationName": { "Value": "StratIT Solutions" },
+  "SsoPortalUrl": { "Value": "https://accounts.google.com/" },
+  "SupportMessage": { "Value": "Questions? Contact IT." },
+  "AllowGoogleSignIn": { "Value": true },
+  "AllowMicrosoftSignIn": { "Value": false },
+  "TenantRestrictionScope": { "Value": "ai-sites" },
+  "ProviderModes": { "Value": { "deepseek": "block" } },
+  "SignOutOnInstall": { "Value": true }
+}

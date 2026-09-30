@@ -1,0 +1,76 @@
+:root {
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --text: #0f172a;
+  --muted: #475569;
+  --border: #cbd5e1;
+  --accent: #1d4ed8;
+  --accent-text: #ffffff;
+  --warn-bg: #fef3c7;
+  --warn-text: #92400e;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --border: #475569;
+    --accent: #3b82f6;
+    --warn-bg: #422006;
+    --warn-text: #fcd34d;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main { max-width: 720px; margin: 0 auto; padding: 48px 16px; }
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px;
+}
+h1 { font-size: 24px; line-height: 1.25; margin: 0 0 10px; }
+h2 { font-size: 17px; margin: 28px 0 8px; }
+p { margin: 0 0 12px; }
+.muted { color: var(--muted); font-size: 14px; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+.button, button {
+  font: inherit;
+  display: inline-block;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  text-decoration: none;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--accent-text);
+}
+.button.secondary, button.secondary { background: transparent; color: var(--text); border-color: var(--border); }
+.notice { background: var(--warn-bg); color: var(--warn-text); border-radius: 8px; padding: 10px 14px; margin: 0 0 16px; }
+label { display: block; font-weight: 600; margin: 16px 0 4px; }
+.hint { font-weight: 400; color: var(--muted); font-size: 13px; margin: 2px 0 6px; }
+input[type="text"], input[type="url"], textarea, select {
+  width: 100%;
+  font: inherit;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+textarea { min-height: 72px; resize: vertical; }
+.check { display: flex; gap: 8px; align-items: flex-start; font-weight: 600; margin-top: 16px; }
+.check input { margin-top: 4px; }
+table { width: 100%; border-collapse: collapse; }
+td { padding: 6px 0; border-bottom: 1px solid var(--border); vertical-align: middle; }
+td:last-child { width: 140px; }
+fieldset:disabled { opacity: 0.75; }
+fieldset { border: 0; padding: 0; margin: 0; }
+.status { margin-left: 8px; color: var(--muted); }

@@ -1,0 +1,7 @@
+body { font: 14px/1.5 ui-monospace, Menlo, monospace; margin: 24px; }
+ul { list-style: none; padding: 0; }
+li { white-space: pre-wrap; padding: 2px 0; }
+.pass { color: #15803d; }
+.fail { color: #b91c1c; font-weight: bold; }
+#fixtures { margin-top: 24px; border-top: 1px solid #ccc; padding-top: 12px; }
+#fixtures > div, #fixtures > form { margin: 8px 0; }
