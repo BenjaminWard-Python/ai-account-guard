@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacy Policy | AI Account Guard</title>
+    <meta name="description" content="AI Account Guard privacy policy." />
+    <link rel="canonical" href="https://stratitsolutions.com/ai-account-guard/privacy/" />
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <style>
+      .policy { max-width: 760px; margin: 0 auto; padding: 48px 18px 72px; }
+      .policy h1 { font-size: 34px; line-height: 1.2; margin: 0 0 6px; color: var(--ink); }
+      .policy h2 { font-size: 21px; margin: 34px 0 8px; color: var(--ink); }
+      .policy em { color: var(--muted); font-style: normal; font-size: 14px; }
+      .policy a { color: var(--accent); }
+      .policy ul { padding-left: 22px; }
+      .policy li { margin: 8px 0; }
+      .brand { text-decoration: none; }
+    </style>
+  </head>
+  <body>
+    <!-- Generated from docs/PRIVACY.md in the ai-account-guard repo by scripts/build-privacy-html.py.
+         Edit the Markdown there and regenerate, rather than editing this file. -->
+    <header class="nav">
+      <div class="container nav-inner">
+        <a class="brand" href="/">
+          <img class="brand-mark" src="/stratit-shield.png" alt="" />
+          <span>StratIT Solutions</span>
+        </a>
+      </div>
+    </header>
+    <main class="policy">
+<h1>AI Account Guard privacy policy</h1>
+<p><em>Last updated: September 30, 2026</em></p>
+<p>AI Account Guard is a browser extension that keeps people on work accounts when they sign in to AI services. It is published by StratIT Solutions LLC ("StratIT") and is open source, so everything below can be checked in the code.</p>
+<h2>The short version</h2>
+<p>AI Account Guard does not collect, store, sell, or send your personal data anywhere. It has no analytics, no tracking, and no servers. Everything it does happens inside your browser.</p>
+<h2>What the extension reads, and why</h2>
+<ul>
+  <li><strong>Email addresses typed into sign-in forms</strong> on the AI services it covers (such as ChatGPT, Claude, and Perplexity). The extension checks the part after the "@" against your organization's approved domains, then discards it. Email addresses are never saved or sent.</li>
+  <li><strong>Which sign-in button you click</strong> on those services (for example "Continue with Apple"), to decide whether that sign-in method is allowed.</li>
+  <li><strong>The address of pages you open in a tab that started on a covered AI service</strong>, only to tell whether the tab is still part of an AI sign-in. Nothing about your browsing is saved beyond the current browser session, and nothing is sent anywhere.</li>
+</ul>
+<h2>What the extension stores</h2>
+<ul>
+  <li><strong>Settings</strong>, either set by your organization's IT administrator through device management, or entered on the extension's settings page. They are stored in your browser only.</li>
+  <li><strong>A list of open tab IDs</strong> that are part of an AI sign-in, kept in temporary browser storage and cleared when the browser closes.</li>
+</ul>
+<h2>What the extension sends</h2>
+<p>The extension makes no network requests of its own. When your organization allows "Sign in with Google" or "Sign in with Microsoft", the extension adds standard tenant-restriction headers to your browser's requests to Google or Microsoft sign-in pages. These headers contain your <strong>organization's approved email domains</strong> and, for Microsoft, your <strong>organization's tenant ID</strong>. They contain nothing about you personally. Google and Microsoft use them to allow only your organization's accounts.</p>
+<h2>Clearing sessions</h2>
+<p>If your IT administrator turns on the "sign out on install" setting, the extension clears cookies and site data for the covered AI services when it is first installed. This signs you out of those services so you can sign back in with your work account. It does not read that data, and it does not affect other websites.</p>
+<h2>Your organization's role</h2>
+<p>If your organization installed this extension, your IT administrator controls its settings. The extension does not report anything back to your organization.</p>
+<h2>Contact</h2>
+<p>Questions about this policy: <a href="mailto:support@stratitsolutions.com">support@stratitsolutions.com</a></p>
+    </main>
+  </body>
+</html>

@@ -12,7 +12,7 @@ This guide takes about 15 minutes: try it on one computer, then roll it out.
 - **Chrome Web Store** (recommended): *link coming soon*. Use this for company-wide rollout;
   it gives you the extension ID your MDM needs and keeps everyone updated automatically.
 - **From source:** on the GitHub page, click **Code → Download ZIP** and unzip it, or run
-  `git clone https://github.com/BenjaminWard-Python/chrome_ai_blocker.git`.
+  `git clone https://github.com/BenjaminWard-Python/ai-account-guard.git`.
 
 ## 2. Try it on one computer
 

@@ -1,0 +1,12 @@
+<!doctype html>
+<meta charset="utf-8">
+<script>
+  // Renders a real extension page (?page=options.html&q=...) with mock-chrome.js injected first.
+  const params = new URLSearchParams(location.search);
+  const page = params.get("page");
+  history.replaceState(null, "", "?" + (params.get("q") || ""));
+  fetch("/extension/pages/" + page).then((r) => r.text()).then((html) => {
+    html = html.replace("<head>", '<head><base href="/extension/pages/"><script src="/store/assets/src/mock-chrome.js"><\/script>');
+    document.open(); document.write(html); document.close();
+  });
+</script>

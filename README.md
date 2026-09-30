@@ -93,6 +93,10 @@ deploy/               Intune, Jamf, and Google Admin templates
 test/                 In-browser tests
 ```
 
+## Privacy
+
+No data collection, no servers, no analytics. See the [privacy policy](docs/PRIVACY.md).
+
 ## License
 
 [MIT](LICENSE)

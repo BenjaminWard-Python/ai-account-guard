@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; width: 1280px; height: 800px; overflow: hidden; }
+  body { background: linear-gradient(160deg, #1e3a8a, #1d4ed8); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #fff; }
+  header { padding: 44px 64px 0; }
+  h1 { margin: 0; font-size: 40px; font-weight: 700; letter-spacing: -0.01em; }
+  p { margin: 8px 0 0; font-size: 20px; color: #dbeafe; }
+  .window { position: absolute; left: 64px; right: 64px; top: 190px; bottom: 0; background: #fff;
+    border-radius: 14px 14px 0 0; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+  .bar { height: 36px; background: #e5e7eb; display: flex; align-items: center; gap: 8px; padding: 0 14px; }
+  .bar span { width: 12px; height: 12px; border-radius: 50%; background: #cbd5e1; }
+  iframe { border: 0; width: 100%; height: calc(100% - 36px); display: block; }
+</style>
+</head>
+<body>
+  <header><h1 id="h"></h1><p id="s"></p></header>
+  <div class="window"><div class="bar"><span></span><span></span><span></span></div><iframe id="f"></iframe></div>
+  <script>
+    const q = new URLSearchParams(location.search);
+    document.getElementById("h").textContent = q.get("h");
+    document.getElementById("s").textContent = q.get("s");
+    document.getElementById("f").src = q.get("src");
+  </script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  body { margin: 0; font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; background: #f4f4f5; color: #18181b;
+    display: flex; align-items: center; justify-content: center; height: 100vh; }
+  .card { background: #fff; width: 360px; padding: 32px; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.08); text-align: center; }
+  h1 { font-size: 24px; margin: 0 0 20px; }
+  input { width: 100%; box-sizing: border-box; font: inherit; padding: 12px; border: 1px solid #d4d4d8; border-radius: 10px; }
+  button { width: 100%; font: inherit; padding: 12px; border-radius: 10px; margin-top: 12px; cursor: pointer; }
+  .primary { background: #18181b; color: #fff; border: 0; }
+  .alt { background: #fff; border: 1px solid #d4d4d8; }
+  .or { color: #71717a; margin: 16px 0 4px; font-size: 13px; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Welcome back</h1>
+    <input type="email" id="email" value="jordan.lee@gmail.com">
+    <button class="primary" id="go">Continue</button>
+    <div class="or">OR</div>
+    <button class="alt">Continue with Google</button>
+    <button class="alt">Continue with Microsoft Account</button>
+    <button class="alt">Continue with Apple</button>
+  </div>
+  <script src="/extension/shared/providers.js"></script>
+  <script src="/extension/shared/config.js"></script>
+  <script src="mock-chrome.js"></script>
+  <script>
+    fetch("/extension/content/content.js").then((r) => r.text()).then((src) => {
+      new Function("location", src)({ hostname: "chatgpt.com" });
+      setTimeout(() => document.getElementById("go").click(), 100);
+    });
+  </script>
+</body>
+</html>
