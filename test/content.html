@@ -32,7 +32,15 @@
       <button id="enterprise">Continue with SSO</button>
       <button id="emailbtn">Continue with email</button>
       <a href="#" id="xlink">Sign in with X</a>
+      <button id="xstyled">Login with 𝕏</button>
+      <button id="usephone">Use phone</button>
       <button id="unrelated">Send message</button>
+    </div>
+
+    <!-- Email field known only by its placeholder (DeepSeek-style) -->
+    <div id="ds">
+      <input type="text" id="email4" placeholder="Phone number / email address">
+      <div role="button" id="login4" tabindex="0">Log in</div>
     </div>
 
     <!-- Email field inside a shadow root -->
@@ -59,6 +67,7 @@
     const ran = [];
     document.getElementById("form1").addEventListener("submit", (e) => { e.preventDefault(); ran.push("form1"); });
     document.getElementById("continue2").addEventListener("click", () => ran.push("continue2"));
+    document.getElementById("login4").addEventListener("click", () => ran.push("login4"));
     for (const b of document.querySelectorAll("#sso button, #sso a")) {
       b.addEventListener("click", (e) => { e.preventDefault(); ran.push(b.id); });
     }
@@ -72,7 +81,7 @@
     function reset() {
       ran.length = 0;
       clearOverlay();
-      for (const id of ["email1", "email2"]) $(id).value = "";
+      for (const id of ["email1", "email2", "email4"]) $(id).value = "";
       shadow.getElementById("email3").value = "";
     }
     function expectBlocked(handlerId) {
@@ -108,6 +117,12 @@
     test("SPA: work email (mixed case) allowed", () => {
       reset(); $("email2").value = "Ben@Example.org"; $("continue2").click(); expectAllowed("continue2");
     });
+    test("placeholder-only email field: personal email blocked", () => {
+      reset(); $("email4").value = "me@gmail.com"; $("login4").click(); expectBlocked("login4");
+    });
+    test("placeholder-only email field: work email allowed", () => {
+      reset(); $("email4").value = "ben@example.org"; $("login4").click(); expectAllowed("login4");
+    });
     test("shadow DOM: personal email blocked", () => {
       reset(); shadow.getElementById("email3").value = "me@gmail.com"; shadow.getElementById("submit3").click(); expectBlocked("submit3");
     });
@@ -119,6 +134,8 @@
     test("SSO: Apple blocked", () => { reset(); $("apple").click(); expectBlocked("apple"); });
     test("SSO: phone blocked", () => { reset(); $("phone").click(); expectBlocked("phone"); });
     test("SSO: X link blocked", () => { reset(); $("xlink").click(); expectBlocked("xlink"); });
+    test("SSO: styled 𝕏 button blocked", () => { reset(); $("xstyled").click(); expectBlocked("xstyled"); });
+    test("SSO: 'Use phone' button blocked", () => { reset(); $("usephone").click(); expectBlocked("usephone"); });
     test("SSO: company SSO button allowed", () => { reset(); $("enterprise").click(); expectAllowed("enterprise"); });
     test("'Continue with email' is not treated as SSO", () => { reset(); $("emailbtn").click(); expectAllowed("emailbtn"); });
     test("unrelated buttons unaffected", () => { reset(); $("unrelated").click(); expectAllowed("unrelated"); });

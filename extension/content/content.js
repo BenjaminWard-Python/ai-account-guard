@@ -35,10 +35,16 @@
     'input[id*="email" i]',
     'input[name="username" i]',
     'input[name="identifier" i]',
+    // Fields known only by their placeholder or label, e.g. "Phone number / email address".
+    'input[placeholder*="email" i]',
+    'input[placeholder*="e-mail" i]',
+    'input[aria-label*="email" i]',
   ].join(",");
 
   const SSO_VERB = /\b(continue|sign\s*-?\s*(in|up|on)|log\s*-?\s*in|login|register|connect)\s+(with|using|via|through)\b/i;
   const ENTERPRISE_SSO = /\b(sso|single\s+sign[\s-]*on|saml|enterprise|work\s+account|organization)\b/i;
+  // Phone sign-in buttons that don't use a "Continue with" phrase, e.g. "Use phone".
+  const PHONE_ONLY = /^(use|with|via)\s+(your\s+|a\s+)?(phone|mobile)(\s+number)?$/i;
   const ACTION_SELECTOR = 'button, [role="button"], input[type="submit"], input[type="button"], a[href]';
 
   // Collects inputs from the document and any open shadow roots.
@@ -78,6 +84,7 @@
     return [el.getAttribute("aria-label"), el.getAttribute("title"), el.value, el.textContent]
       .filter(Boolean)
       .join(" ")
+      .normalize("NFKC") // styled letters such as "𝕏" become plain "X"
       .replace(/\s+/g, " ")
       .trim()
       .slice(0, 200);
@@ -87,6 +94,7 @@
   // provider object, "enterprise" for company SSO buttons, or null if it isn't one.
   function signInMethod(el) {
     const label = labelOf(el);
+    if (PHONE_ONLY.test(label)) return G.IDENTITY_PROVIDERS.find((p) => p.id === "phone");
     if (!SSO_VERB.test(label)) return null;
     if (ENTERPRISE_SSO.test(label)) return "enterprise";
     if (/\bemail\b/i.test(label)) return null;
@@ -102,7 +110,7 @@
     if (!state) {
       // Config has not arrived yet (first few ms of page load). Fail closed for sign-in
       // actions and let the user retry once it has loaded.
-      if (action && (signInMethod(action) || disallowedEmailFallback())) {
+      if ((action && signInMethod(action)) || disallowedEmailFallback()) {
         stop(event);
         ready.then(() => showBlocked({ kind: "loading" }));
       }
@@ -183,7 +191,7 @@
         .card { background: #fff; color: #0f172a; max-width: 440px; width: 100%; border-radius: 14px;
           padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,.3); }
         h2 { margin: 0 0 8px; font-size: 19px; line-height: 1.3; }
-        p { margin: 0 0 12px; }
+        p { margin: 0 0 12px; overflow-wrap: anywhere; }
         .muted { color: #475569; font-size: 14px; }
         .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; flex-wrap: wrap; }
         a, button { font: inherit; border-radius: 8px; padding: 8px 14px; cursor: pointer; text-decoration: none; }
