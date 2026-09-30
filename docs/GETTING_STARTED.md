@@ -9,8 +9,8 @@ This guide takes about 15 minutes: try it on one computer, then roll it out.
 
 ## 1. Get the extension
 
-- **Chrome Web Store** (recommended): *link coming soon*. Use this for company-wide rollout;
-  it gives you the extension ID your MDM needs and keeps everyone updated automatically.
+- **Chrome Web Store** (recommended): [AI Account Guard](https://chromewebstore.google.com/detail/jhhgomolhbopcedgcnilbggglnfikmfd). Use this for company-wide
+  rollout; it keeps everyone updated automatically. The extension ID is `jhhgomolhbopcedgcnilbggglnfikmfd`.
 - **From source:** on the GitHub page, click **Code → Download ZIP** and unzip it, or run
   `git clone https://github.com/BenjaminWard-Python/ai-account-guard.git`.
 
@@ -39,8 +39,7 @@ are in the [`deploy`](../deploy/) folder, with step-by-step instructions in
 | Jamf Pro (macOS) | `deploy/jamf/ai-account-guard.mobileconfig` (configuration profile) |
 | Google Workspace (Chromebooks, managed Chrome) | `deploy/google-admin/extension-policy.json` (Admin console) |
 
-In each template, replace `EXTENSION_ID` with the ID from the Chrome Web Store listing and
-edit the example values. When installed this way, users can't remove the extension or change
+The templates already contain the extension ID. Edit the example values. When installed this way, users can't remove the extension or change
 its settings.
 
 ## 4. Choose your settings

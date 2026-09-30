@@ -11,7 +11,7 @@
 #>
 
 # ---- CONFIGURATION -----------------------------------------------------------------------
-$ExtensionId   = "EXTENSION_ID"    # Chrome Web Store ID of AI Account Guard
+$ExtensionId   = "jhhgomolhbopcedgcnilbggglnfikmfd"    # Chrome Web Store ID of AI Account Guard
 $UpdateUrl     = "https://clients2.google.com/service/update2/crx"
 
 $Policy = [ordered]@{

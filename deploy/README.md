@@ -1,8 +1,8 @@
 # Deploying AI Account Guard
 
 Every method does two things: **force-install** the extension, and push its **policy**
-(the settings in the main README). Replace `EXTENSION_ID` with the extension's Chrome Web
-Store ID, and edit the example values for your organization.
+(the settings in the main README). The templates already contain the extension's Chrome Web
+Store ID, `jhhgomolhbopcedgcnilbggglnfikmfd`; edit the example values for your organization.
 
 After deploying, confirm on a managed machine at `chrome://policy`: the extension ID should
 appear under the extension's section with your values and no errors. Also check
@@ -25,17 +25,17 @@ rerunning it replaces the extension's policy.
 
 Use [jamf/ai-account-guard.mobileconfig](jamf/ai-account-guard.mobileconfig):
 
-1. Replace `EXTENSION_ID` (it appears twice) and edit the policy values.
+1. Edit the policy values.
 2. Jamf Pro → **Computers → Configuration Profiles → Upload**, and scope it to your computers.
 
 The profile has two payloads: `com.google.Chrome` (force install) and
-`com.google.Chrome.extensions.EXTENSION_ID` (extension policy).
+`com.google.Chrome.extensions.jhhgomolhbopcedgcnilbggglnfikmfd` (extension policy).
 
 ## Google Workspace (Admin console)
 
 1. Admin console → **Chrome browser → Apps & extensions → Users & browsers** (or
    **Managed browsers**). Select the org unit.
-2. **+ → Add Chrome app or extension by ID**, enter the extension ID, and set
+2. **+ → Add Chrome app or extension by ID**, enter `jhhgomolhbopcedgcnilbggglnfikmfd`, and set
    **Installation policy** = *Force install*.
 3. In the extension's **Policy for extensions** box, paste
    [google-admin/extension-policy.json](google-admin/extension-policy.json) after editing it.

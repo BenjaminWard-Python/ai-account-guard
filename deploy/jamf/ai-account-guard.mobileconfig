@@ -2,7 +2,7 @@
 <!--
   AI Account Guard for Google Chrome on macOS.
   Upload in Jamf Pro: Computers > Configuration Profiles > New > Upload.
-  Replace EXTENSION_ID (2 places below) and the policy values below before uploading.
+  Edit the policy values below before uploading.
   Replace the two PayloadUUIDs with fresh values (run `uuidgen`) if you make copies.
 -->
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -34,13 +34,13 @@
       <integer>1</integer>
       <key>ExtensionInstallForcelist</key>
       <array>
-        <string>EXTENSION_ID;https://clients2.google.com/service/update2/crx</string>
+        <string>jhhgomolhbopcedgcnilbggglnfikmfd;https://clients2.google.com/service/update2/crx</string>
       </array>
     </dict>
     <!-- Extension policy (read by the extension via chrome.storage.managed) -->
     <dict>
       <key>PayloadType</key>
-      <string>com.google.Chrome.extensions.EXTENSION_ID</string>
+      <string>com.google.Chrome.extensions.jhhgomolhbopcedgcnilbggglnfikmfd</string>
       <key>PayloadIdentifier</key>
       <string>org.example.aiaccountguard.policy</string>
       <key>PayloadUUID</key>

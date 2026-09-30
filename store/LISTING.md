@@ -14,11 +14,23 @@ Build the upload with `./scripts/package.sh` (creates `dist/ai-account-guard-<ve
 
 ## Store listing tab
 
+Name at most two AI services anywhere in the listing (summary, description, screenshots).
+Version 0.1.0 was rejected as keyword spam ("Yellow Argon") for listing nine service names
+in the description. The full list lives on the settings page and in the docs instead.
+
+While the GitHub repo is private, the description must not point to it (a reviewer who follows
+the link gets a 404). When the repo goes public, change the two lines back to: "Ready-made
+deployment templates and a step-by-step guide are in the project's GitHub repository" and
+"Free and open source (MIT license). Read the code on GitHub."
+
 **Name:** AI Account Guard
 
 **Summary** (max 132 characters):
 
-> Keep staff on work accounts in ChatGPT, Claude, Gemini, Copilot and other AI services. Blocks personal sign-ins.
+> Keeps staff on work accounts in ChatGPT, Claude and other AI services by blocking personal sign-ins.
+
+This is the `description` in `extension/manifest.json`; the store shows it as the summary, so keep
+the two identical.
 
 **Category:** Productivity → Tools
 **Language:** English
@@ -31,21 +43,21 @@ AI Account Guard keeps your staff on work accounts when they use AI services in 
 Personal accounts on AI tools are a quiet data-loss risk: work documents pasted into a personal ChatGPT or Claude account leave your organization's control. AI Account Guard stops those sign-ins before they happen and points people to your company sign-in instead.
 
 WHAT IT DOES
-• Blocks sign-in with personal email addresses on ChatGPT, Claude, Gemini, Microsoft Copilot, Perplexity, DeepSeek, Grok, Mistral Le Chat and Poe
-• Blocks personal "Continue with Apple / GitHub / X / phone" sign-ins on those services
+• Blocks sign-in with personal email addresses on popular AI chat services. The settings page lists every service covered.
+• Blocks personal "Continue with …" sign-in buttons, such as Continue with Apple, on those services
 • Allows "Sign in with Google" and "Sign in with Microsoft" for your organization's accounts only, using Google's and Microsoft's own tenant restrictions
-• Lets you block individual AI services entirely (Meta AI is blocked by default, as it only supports personal accounts)
+• Lets you block individual AI services entirely. Services that only offer personal accounts are blocked by default.
 • Shows a clear message with your organization's name, support contact and a link to your sign-in portal
 
 BUILT FOR IT TEAMS
 • Configure centrally with Microsoft Intune, Jamf, or the Google Admin console. Users can't remove it or change its settings.
-• Ready-made deployment templates and a step-by-step guide are in the project's GitHub repository
+• Ready-made deployment templates and a step-by-step setup guide are available on request from support@stratitsolutions.com
 • Smaller teams without device management can configure it on each computer from its settings page
 
 PRIVATE BY DESIGN
 • No accounts, no servers, no analytics, no tracking
 • Email addresses are checked inside the browser and never stored or sent
-• Free and open source (MIT license). Read the code on GitHub.
+• Free, with no ads
 
 Important: this extension must be configured before use. Until an approved email domain is set, it blocks every sign-in on the AI services it covers.
 
@@ -111,10 +123,10 @@ Published from the stratit-website repo at `ai-account-guard/privacy/index.html`
 - **Visibility:** Unlisted for the pilot
 - **Regions:** All regions
 
-## After the first upload
+## Extension ID
 
-The dashboard shows the permanent **extension ID**. Replace `EXTENSION_ID` in
-[deploy/](../deploy/) and add the store link to [docs/GETTING_STARTED.md](../docs/GETTING_STARTED.md).
+`jhhgomolhbopcedgcnilbggglnfikmfd` (permanent). It is already filled into [deploy/](../deploy/),
+and the store link is in [docs/GETTING_STARTED.md](../docs/GETTING_STARTED.md).
 
 Expect the first review to take longer than usual: the extension reads sign-in forms and changes
 sign-in requests, which gets a closer look. The permission justifications above are written for

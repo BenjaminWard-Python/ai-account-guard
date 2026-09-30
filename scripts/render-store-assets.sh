@@ -30,7 +30,7 @@ shot() { # file headline subline inner-url
 }
 
 shot screenshot-1-block.png "Stops personal sign-ins to AI services" \
-  "Staff can only sign in to ChatGPT, Claude, Gemini, Copilot and more with work accounts." "$B/login.html"
+  "Staff can only sign in to AI services like ChatGPT and Claude with work accounts." "$B/login.html"
 shot screenshot-2-settings.png "Set up once, managed centrally" \
   "Push settings from Intune, Jamf or Google Admin. Users can't change them." "$B/page.html?page=options.html"
 shot screenshot-3-sso.png "Points people to the right sign-in" \

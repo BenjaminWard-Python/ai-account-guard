@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "AI Account Guard",
-  "version": "0.1.0",
-  "description": "Only allow work accounts on ChatGPT, Claude, Gemini, Copilot and other AI services.",
+  "version": "0.1.1",
+  "description": "Keeps staff on work accounts in ChatGPT, Claude and other AI services by blocking personal sign-ins.",
   "minimum_chrome_version": "121",
   "icons": {
     "16": "icons/icon16.png",
