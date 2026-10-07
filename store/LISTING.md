@@ -18,10 +18,8 @@ Name at most two AI services anywhere in the listing (summary, description, scre
 Version 0.1.0 was rejected as keyword spam ("Yellow Argon") for listing nine service names
 in the description. The full list lives on the settings page and in the docs instead.
 
-While the GitHub repo is private, the description must not point to it (a reviewer who follows
-the link gets a 404). When the repo goes public, change the two lines back to: "Ready-made
-deployment templates and a step-by-step guide are in the project's GitHub repository" and
-"Free and open source (MIT license). Read the code on GitHub."
+The description points to the GitHub repo, so keep the repo public; a reviewer who follows the
+link to a private repo gets a 404.
 
 **Name:** AI Account Guard
 
@@ -51,13 +49,13 @@ WHAT IT DOES
 
 BUILT FOR IT TEAMS
 • Configure centrally with Microsoft Intune, Jamf, or the Google Admin console. Users can't remove it or change its settings.
-• Ready-made deployment templates and a step-by-step setup guide are available on request from support@stratitsolutions.com
+• Ready-made deployment templates and a step-by-step guide are in the project's GitHub repository
 • Smaller teams without device management can configure it on each computer from its settings page
 
 PRIVATE BY DESIGN
 • No accounts, no servers, no analytics, no tracking
 • Email addresses are checked inside the browser and never stored or sent
-• Free, with no ads
+• Free and open source (MIT license). Read the code on GitHub.
 
 Important: this extension must be configured before use. Until an approved email domain is set, it blocks every sign-in on the AI services it covers.
 
@@ -74,10 +72,28 @@ It protects Chrome only. For full coverage, also block other browsers and deskto
 | Screenshot 3 | `store/assets/screenshot-3-sso.png` |
 | Small promo tile (440×280) | `store/assets/promo-small-440x280.png` |
 
-**Homepage URL:** optional. Use https://github.com/BenjaminWard-Python/ai-account-guard once it's public, or a product page such as
-https://stratitsolutions.com/ai-account-guard. Leave it blank rather than linking the private repo.
+**Homepage URL:** https://github.com/BenjaminWard-Python/ai-account-guard
 **Support URL:** optional. Your verified contact email (support@stratitsolutions.com) is shown on
 the listing either way; add a StratIT support page here later if you make one.
+
+## Test instructions tab (Access)
+
+Reviewers install the extension unconfigured, which blocks every sign-in on the covered AI
+services. Paste this so they can see both outcomes:
+
+```
+This extension is configured by an organization's IT team, so until an approved email domain is set it blocks every sign-in on the AI services it covers.
+
+To test:
+1. After installing, the settings page opens (or click the extension's toolbar icon).
+2. Under "Allowed email domains", enter: example.org
+3. Click Save.
+4. Go to https://chatgpt.com/auth/login and enter a personal address such as someone@gmail.com, then click Continue. A notice explains that personal accounts aren't allowed, and the sign-in is stopped.
+5. Enter someone@example.org and click Continue. The sign-in proceeds normally.
+6. Click "Continue with Apple". It is blocked. "Continue with Google" is allowed, restricted to example.org accounts by Google's own tenant restriction.
+
+No account or login is needed to test. The extension has no servers and sends no data.
+```
 
 ## Privacy practices tab
 
