@@ -52,13 +52,14 @@
   <script src="assert.js"></script>
   <script>
     const G = AIGuard;
+    let activeSource = "managed";
     let activeConfig = G.normalizeConfig({ AllowedDomains: ["example.org"], SsoPortalUrl: "https://myapps.microsoft.com", OrganizationName: "Example Org" });
 
     // Mock of the chrome APIs the content script uses.
     globalThis.chrome = {
       runtime: {
         lastError: undefined,
-        sendMessage: (msg, cb) => setTimeout(() => cb({ config: activeConfig, source: "managed" }), 0),
+        sendMessage: (msg, cb) => setTimeout(() => cb({ config: activeConfig, source: activeSource }), 0),
       },
       storage: { onChanged: { addListener: () => {} } },
     };
@@ -166,6 +167,17 @@
       reset(); $("email1").value = "ben@example.org"; $("submit1").click(); expectBlocked("form1");
       assert(overlay().shadowRoot.textContent.includes("isn't set up yet"), "explains setup is needed");
       reset(); $("google").click(); expectBlocked("google");
+    });
+
+    test("IT-installed without settings: blocked, and the user is sent to IT", async () => {
+      activeConfig = G.normalizeConfig({});
+      activeSource = "awaiting-policy";
+      await reloadConfig();
+      reset(); $("email1").value = "ben@example.org"; $("submit1").click(); expectBlocked("form1");
+      const text = overlay().shadowRoot.textContent;
+      assert(text.includes("still setting this up"), "explains IT is setting it up");
+      assert(!text.includes("extension's settings"), "doesn't suggest editing settings");
+      activeSource = "managed";
     });
 
     // The content script listens for storage changes to reload config; the mock

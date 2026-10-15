@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  AI Account Guard settings only (no install), for when Jamf already installs the extension,
+  for example from the Chrome Web Store link.
+  Jamf Pro: Computers > Configuration Profiles > (new or existing) > Application & Custom Settings
+  > Upload. Preference Domain: com.google.Chrome.extensions.jhhgomolhbopcedgcnilbggglnfikmfd
+  Edit the values below, upload this file as the property list, and scope it to the same computers.
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>AllowedDomains</key>
+  <array>
+    <string>example.org</string>
+  </array>
+  <key>OrganizationName</key>
+  <string>Example Org</string>
+  <key>SsoPortalUrl</key>
+  <string>https://myapps.microsoft.com</string>
+  <key>SupportMessage</key>
+  <string>Questions? Contact IT.</string>
+  <key>AllowGoogleSignIn</key>
+  <false/>
+  <key>AllowMicrosoftSignIn</key>
+  <true/>
+  <key>MicrosoftTenantId</key>
+  <string>00000000-0000-0000-0000-000000000000</string>
+  <key>TenantRestrictionScope</key>
+  <string>ai-sites</string>
+  <key>ProviderModes</key>
+  <dict>
+    <key>deepseek</key>
+    <string>block</string>
+  </dict>
+</dict>
+</plist>

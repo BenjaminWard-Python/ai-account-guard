@@ -4,8 +4,11 @@ Every method does two things: **force-install** the extension, and push its **po
 (the settings in the main README). The templates already contain the extension's Chrome Web
 Store ID, `jhhgomolhbopcedgcnilbggglnfikmfd`; edit the example values for your organization.
 
-After deploying, confirm on a managed machine at `chrome://policy`: the extension ID should
-appear under the extension's section with your values and no errors. Also check
+After deploying, confirm on a managed machine at `chrome://policy` (click **Reload policies**):
+there should be a section for `jhhgomolhbopcedgcnilbggglnfikmfd` with your values and no errors.
+If that section is missing, the settings didn't arrive; installing the extension alone doesn't
+send them. The extension's settings page should say the settings are managed by your
+organization. Also check
 `chrome://extensions` to confirm the extension is installed and can't be removed.
 
 ## Microsoft Intune (Windows)
@@ -30,6 +33,20 @@ Use [jamf/ai-account-guard.mobileconfig](jamf/ai-account-guard.mobileconfig):
 
 The profile has two payloads: `com.google.Chrome` (force install) and
 `com.google.Chrome.extensions.jhhgomolhbopcedgcnilbggglnfikmfd` (extension policy).
+
+**Already installing it another way** (for example from the Chrome Web Store link)? Don't add a
+second force-install; push only the settings with
+[jamf/ai-account-guard-settings.plist](jamf/ai-account-guard-settings.plist):
+
+1. Edit the values in the file.
+2. Jamf Pro → **Computers → Configuration Profiles** → the profile that installs the extension
+   (or a new one with the same scope) → **Application & Custom Settings → Upload**.
+3. **Preference Domain:** `com.google.Chrome.extensions.jhhgomolhbopcedgcnilbggglnfikmfd`.
+   Upload the plist and save.
+
+Installing the extension without its settings is not enough: from version 0.1.3 the extension
+blocks every sign-in on AI services and tells users IT is still setting it up, until the
+settings arrive. (Earlier versions let users edit the settings themselves in that case.)
 
 ## Google Workspace (Admin console)
 

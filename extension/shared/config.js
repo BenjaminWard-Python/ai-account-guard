@@ -1,8 +1,10 @@
 // Loading, normalizing, and evaluating the extension's configuration.
 //
 // Precedence: if IT has pushed any managed policy (Intune, Jamf, Google Admin), the managed
-// values are used on top of DEFAULTS and local settings are ignored entirely. Otherwise the
-// settings saved on the options page (chrome.storage.local) are used on top of DEFAULTS.
+// values are used on top of DEFAULTS and local settings are ignored entirely. If IT installed
+// the extension but its policy hasn't arrived, DEFAULTS are used (every sign-in blocked) and
+// local settings are still ignored, so users can't fill the gap. Otherwise the settings saved
+// on the options page (chrome.storage.local) are used on top of DEFAULTS.
 (function (root) {
   "use strict";
 
@@ -132,7 +134,20 @@
     return !!obj && POLICY_KEYS.some((k) => obj[k] !== undefined);
   }
 
-  // Returns { config, source } where source is "managed", "local", or "default".
+  // True when IT force-installed the extension (ExtensionInstallForcelist). getSelf needs no
+  // "management" permission.
+  async function isAdminInstalled() {
+    const management = root.chrome && root.chrome.management;
+    if (!management || !management.getSelf) return false;
+    try {
+      return (await management.getSelf()).installType === "admin";
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // Returns { config, source } where source is "managed", "awaiting-policy", "local", or
+  // "default".
   async function loadConfig() {
     const storage = root.chrome && root.chrome.storage;
     let managed = {};
@@ -148,6 +163,7 @@
       } catch (_) {}
     }
     if (hasAnyKey(managed)) return { config: normalizeConfig(managed), source: "managed" };
+    if (await isAdminInstalled()) return { config: normalizeConfig({}), source: "awaiting-policy" };
     if (hasAnyKey(local)) return { config: normalizeConfig(local), source: "local" };
     return { config: normalizeConfig({}), source: "default" };
   }

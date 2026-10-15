@@ -3,7 +3,7 @@
 
   const G = globalThis.AIGuard;
   const params = new URLSearchParams(location.search);
-  const { config } = await G.loadConfig();
+  const { config, source } = await G.loadConfig();
   const org = config.OrganizationName || "Your organization";
   const provider = G.PROVIDERS.find((p) => p.id === params.get("provider"));
   const idp = G.IDENTITY_PROVIDERS.find((p) => p.id === params.get("idp"));
@@ -16,7 +16,9 @@
   } else if (!config.AllowedDomains.length) {
     $("title").textContent = "AI Account Guard isn't set up yet";
     $("body").textContent = "Signing in to AI services is blocked until approved email domains are configured. " +
-      "Ask your IT team, or add your domain in the extension's settings.";
+      (source === "awaiting-policy"
+        ? "Your IT team is still setting this up. Ask them for help."
+        : "Ask your IT team, or add your domain in the extension's settings.");
   } else if (params.get("reason") === "sso" && idp) {
     $("title").textContent = `Signing in with ${idp.name} isn't allowed here`;
     $("body").textContent = `${org} only allows AI services with your work account.`;

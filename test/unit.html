@@ -69,6 +69,42 @@
       assert(G.identityProviderAllowed("microsoft", cfg({ AllowMicrosoftSignIn: true, MicrosoftTenantId: "abc" })));
       assert(!G.identityProviderAllowed("microsoft-personal", cfg({ AllowMicrosoftSignIn: true, MicrosoftTenantId: "abc" })));
     });
+    // loadConfig with a mocked chrome.storage / chrome.management.
+    async function loadWith({ managed = {}, local = {}, installType = "normal" }) {
+      const saved = globalThis.chrome;
+      globalThis.chrome = {
+        storage: {
+          managed: { get: async () => managed },
+          local: { get: async () => ({ settings: local }) },
+        },
+        management: { getSelf: async () => ({ installType }) },
+      };
+      try {
+        return await G.loadConfig();
+      } finally {
+        globalThis.chrome = saved;
+      }
+    }
+    test("loadConfig: managed policy wins over local settings", async () => {
+      const r = await loadWith({ managed: { AllowedDomains: ["corp.org"] }, local: { AllowedDomains: ["me.com"] }, installType: "admin" });
+      assertEqual(r.source, "managed");
+      assertEqual(r.config.AllowedDomains, ["corp.org"]);
+    });
+    test("loadConfig: IT-installed without policy ignores local settings and blocks everything", async () => {
+      const r = await loadWith({ local: { AllowedDomains: ["gmail.com"], ProviderModes: { deepseek: "enforce" } }, installType: "admin" });
+      assertEqual(r.source, "awaiting-policy");
+      assertEqual(r.config.AllowedDomains, []);
+    });
+    test("loadConfig: self-installed uses local settings", async () => {
+      const r = await loadWith({ local: { AllowedDomains: ["smallorg.org"] }, installType: "normal" });
+      assertEqual(r.source, "local");
+      assertEqual(r.config.AllowedDomains, ["smallorg.org"]);
+    });
+    test("loadConfig: self-installed with nothing saved uses defaults", async () => {
+      const r = await loadWith({ installType: "normal" });
+      assertEqual(r.source, "default");
+    });
+
     test("provider lookup by host", () => {
       assertEqual(G.providerForHost("chatgpt.com").id, "chatgpt");
       assertEqual(G.providerForHost("auth.openai.com").id, "chatgpt");

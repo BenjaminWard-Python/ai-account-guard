@@ -172,7 +172,9 @@
     } else if (!c.AllowedDomains.length) {
       title = "AI Account Guard isn't set up yet";
       body = `Signing in to ${provider.name} is blocked until approved email domains are configured. ` +
-        "Ask your IT team, or add your domain in the extension's settings.";
+        (state && state.source === "awaiting-policy"
+          ? "Your IT team is still setting this up. Ask them for help."
+          : "Ask your IT team, or add your domain in the extension's settings.");
     } else if (info.kind === "sso") {
       title = `Signing in with ${info.idp.name} isn't allowed`;
       body = `${org} only allows ${provider.name} with your work account.`;
