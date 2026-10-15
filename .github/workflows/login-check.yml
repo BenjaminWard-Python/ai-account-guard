@@ -1,0 +1,37 @@
+# Daily check that AI Account Guard still recognizes the real AI sign-in pages
+# (see monitor/README.md). GitHub emails the repo owner when a scheduled run fails.
+name: Login page check
+
+on:
+  schedule:
+    - cron: "17 11 * * *" # daily, 11:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: monitor/package-lock.json
+      - name: Install
+        working-directory: monitor
+        run: npm ci
+      - name: Check sign-in pages
+        working-directory: monitor
+        # A visible browser on a virtual display: sites block headless Chrome more often.
+        run: HEADFUL=1 xvfb-run --auto-servernum node check.mjs
+      - name: Keep screenshots and report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: login-check
+          path: monitor/output/
+          retention-days: 14

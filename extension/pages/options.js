@@ -31,20 +31,60 @@
     $("fields").disabled = locked;
     $("source").textContent = {
       managed: "These settings are managed by your organization and can't be changed here.",
-      "awaiting-policy": "Your IT team installed AI Account Guard but hasn't sent its settings yet. " +
-        "Until they do, sign-ins on AI services are blocked, and these settings can't be changed here.",
+      "awaiting-policy": "These settings will come from your IT team and can't be changed here.",
       local: "Using settings saved on this computer.",
       default: "Using default settings. Save to customize them for this computer.",
     }[source];
-
-    const warnings = [];
-    if (!config.AllowedDomains.length && !locked) {
-      warnings.push("Add your organization's email domain to get started. Until one is set, every sign-in on covered AI services is blocked.");
-    }
-    if (config.AllowMicrosoftSignIn && !config.MicrosoftTenantId) warnings.push("Microsoft sign-in stays blocked until a tenant ID is set.");
-    $("warning").textContent = warnings.join(" ");
-    $("warning").hidden = !warnings.length;
+    renderStatus({ config, source });
   }
+
+  let statusText = "";
+  async function renderStatus({ config, source }) {
+    const report = G.statusReport({
+      config,
+      source,
+      installType: await G.getInstallType(),
+      version: chrome.runtime.getManifest().version,
+      extensionId: chrome.runtime.id,
+    });
+    statusText = report.text;
+
+    $("problems").replaceChildren(...report.problems.map((p) => {
+      const box = document.createElement("div");
+      box.className = "problem";
+      box.setAttribute("role", "alert");
+      const text = document.createElement("p");
+      text.textContent = p.text;
+      const fix = document.createElement("p");
+      fix.textContent = "How to fix: " + p.fix;
+      box.append(text, fix);
+      return box;
+    }));
+
+    $("status-rows").replaceChildren(...report.rows.flatMap((r) => {
+      const dt = document.createElement("dt");
+      dt.textContent = r.label;
+      const dd = document.createElement("dd");
+      dd.textContent = r.value;
+      if (r.state) dd.className = r.state;
+      return [dt, dd];
+    }));
+  }
+
+  $("open-policy").addEventListener("click", () => chrome.tabs.create({ url: "chrome://policy" }));
+  $("copy-status").addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(statusText);
+      $("copy-result").textContent = "Copied. Paste it into your help-desk ticket.";
+    } catch (_) {
+      $("copy-result").textContent = "Couldn't copy.";
+    }
+  });
+
+  // Settings pushed by IT can arrive while this page is open.
+  chrome.storage.onChanged.addListener(async (_changes, area) => {
+    if (area === "managed") render((current = await G.loadConfig()));
+  });
 
   let current = await G.loadConfig();
   render(current);

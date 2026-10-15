@@ -27,24 +27,8 @@
     if (area === "managed" || area === "local") ready = requestConfig();
   });
 
-  const EMAIL_SELECTOR = [
-    'input[type="email"]',
-    'input[autocomplete~="email"]',
-    'input[autocomplete~="username"]',
-    'input[name*="email" i]',
-    'input[id*="email" i]',
-    'input[name="username" i]',
-    'input[name="identifier" i]',
-    // Fields known only by their placeholder or label, e.g. "Phone number / email address".
-    'input[placeholder*="email" i]',
-    'input[placeholder*="e-mail" i]',
-    'input[aria-label*="email" i]',
-  ].join(",");
-
-  const SSO_VERB = /\b(continue|sign\s*-?\s*(in|up|on)|log\s*-?\s*in|login|register|connect)\s+(with|using|via|through)\b/i;
-  const ENTERPRISE_SSO = /\b(sso|single\s+sign[\s-]*on|saml|enterprise|work\s+account|organization)\b/i;
-  // Phone sign-in buttons that don't use a "Continue with" phrase, e.g. "Use phone".
-  const PHONE_ONLY = /^(use|with|via)\s+(your\s+|a\s+)?(phone|mobile)(\s+number)?$/i;
+  // Sign-in recognition rules live in shared/providers.js.
+  const EMAIL_SELECTOR = G.EMAIL_SELECTOR;
   const ACTION_SELECTOR = 'button, [role="button"], input[type="submit"], input[type="button"], a[href]';
 
   // Collects inputs from the document and any open shadow roots.
@@ -81,24 +65,13 @@
   }
 
   function labelOf(el) {
-    return [el.getAttribute("aria-label"), el.getAttribute("title"), el.value, el.textContent]
-      .filter(Boolean)
-      .join(" ")
-      .normalize("NFKC") // styled letters such as "𝕏" become plain "X"
-      .replace(/\s+/g, " ")
-      .trim()
-      .slice(0, 200);
+    return [el.getAttribute("aria-label"), el.getAttribute("title"), el.value, el.textContent].filter(Boolean).join(" ");
   }
 
   // Classifies a clicked element as a third-party sign-in button. Returns the identity
   // provider object, "enterprise" for company SSO buttons, or null if it isn't one.
   function signInMethod(el) {
-    const label = labelOf(el);
-    if (PHONE_ONLY.test(label)) return G.IDENTITY_PROVIDERS.find((p) => p.id === "phone");
-    if (!SSO_VERB.test(label)) return null;
-    if (ENTERPRISE_SSO.test(label)) return "enterprise";
-    if (/\bemail\b/i.test(label)) return null;
-    return G.IDENTITY_PROVIDERS.find((p) => p.match && p.match.test(label.replace(SSO_VERB, " "))) || null;
+    return G.classifySignInLabel(labelOf(el));
   }
 
   function stop(event) {

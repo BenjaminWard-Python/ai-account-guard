@@ -41,7 +41,8 @@
     {
       id: "copilot",
       name: "Microsoft Copilot (consumer)",
-      domains: ["copilot.microsoft.com"],
+      // Consumer Copilot moved to copilot.com in 2026; copilot.microsoft.com redirects there.
+      domains: ["copilot.com", "copilot.microsoft.com"],
       signInVia: "microsoft",
       mode: "enforce",
       clearSessionsOnInstall: false,
@@ -136,6 +137,51 @@
     { id: "phone", name: "Phone number", controllable: false, match: /\b(phone|mobile|sms)\b/i, requestDomains: [] },
   ];
 
+  // How sign-in forms and buttons are recognized on AI services. Shared by the content script
+  // and the daily login-page check (monitor/), so both apply exactly the same rules.
+  const EMAIL_SELECTOR = [
+    'input[type="email"]',
+    'input[autocomplete~="email"]',
+    'input[autocomplete~="username"]',
+    'input[name*="email" i]',
+    'input[id*="email" i]',
+    'input[name="username" i]',
+    'input[name="identifier" i]',
+    // Fields known only by their placeholder or label, e.g. "Phone number / email address".
+    'input[placeholder*="email" i]',
+    'input[placeholder*="e-mail" i]',
+    'input[aria-label*="email" i]',
+  ].join(",");
+
+  const SSO_VERB = /\b(continue|sign\s*-?\s*(in|up|on)|log\s*-?\s*in|login|register|connect)\s+(with|using|via|through)\b/i;
+  const ENTERPRISE_SSO = /\b(sso|single\s+sign[\s-]*on|saml|enterprise|work\s+account|organization)\b/i;
+  // Phone sign-in buttons that don't use a "Continue with" phrase, e.g. "Use phone".
+  const PHONE_ONLY = /^(use|with|via)\s+(your\s+|a\s+)?(phone|mobile)(\s+number)?$/i;
+
+  // Collapses whitespace and turns styled letters such as "𝕏" into plain "X".
+  function normalizeLabel(text) {
+    return String(text || "").normalize("NFKC").replace(/\s+/g, " ").trim().slice(0, 200);
+  }
+
+  // Classifies a button label as a third-party sign-in. Returns the identity provider object,
+  // "enterprise" for company SSO buttons, or null if it isn't a third-party sign-in.
+  function classifySignInLabel(label) {
+    label = normalizeLabel(label);
+    if (PHONE_ONLY.test(label)) return IDENTITY_PROVIDERS.find((p) => p.id === "phone");
+    if (!SSO_VERB.test(label)) return null;
+    if (ENTERPRISE_SSO.test(label)) return "enterprise";
+    if (/\bemail\b/i.test(label)) return null;
+    return IDENTITY_PROVIDERS.find((p) => p.match && p.match.test(label.replace(SSO_VERB, " "))) || null;
+  }
+
+  // True for a label that reads like a third-party sign-in ("Continue with ...") but names a
+  // provider the extension doesn't know, so it would not be blocked. The login-page check
+  // reports these for review.
+  function isUnrecognizedSignIn(label) {
+    label = normalizeLabel(label);
+    return SSO_VERB.test(label) && !/\bemail\b/i.test(label) && classifySignInLabel(label) === null;
+  }
+
   function hostMatches(host, domain) {
     host = String(host || "").toLowerCase();
     return host === domain || host.endsWith("." + domain);
@@ -152,6 +198,10 @@
   root.AIGuard = Object.assign(root.AIGuard || {}, {
     PROVIDERS,
     IDENTITY_PROVIDERS,
+    EMAIL_SELECTOR,
+    normalizeLabel,
+    classifySignInLabel,
+    isUnrecognizedSignIn,
     hostMatches,
     providerForHost,
     identityProviderForHost,

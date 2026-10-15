@@ -13,7 +13,11 @@ globalThis.chrome = {
   runtime: {
     lastError: undefined,
     sendMessage: (_msg, cb) => setTimeout(() => cb({ config: AIGuard.normalizeConfig(DEMO_SETTINGS), source: "managed" }), 0),
+    getManifest: () => ({ version: "0.1.4" }),
+    id: "jhhgomolhbopcedgcnilbggglnfikmfd",
   },
+  management: { getSelf: async () => ({ installType: "admin" }) },
+  tabs: { create: () => {} },
   storage: {
     managed: { get: async () => DEMO_SETTINGS },
     local: { get: async () => ({}), set: async () => {} },

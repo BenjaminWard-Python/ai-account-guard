@@ -10,8 +10,20 @@
   <main>
     <div class="card">
       <h1>AI Account Guard</h1>
+
+      <section aria-labelledby="status-heading">
+        <h2 id="status-heading">Status</h2>
+        <div id="problems"></div>
+        <dl class="status-rows" id="status-rows"></dl>
+        <div class="actions">
+          <button type="button" class="secondary" id="open-policy">Open chrome://policy</button>
+          <button type="button" class="secondary" id="copy-status">Copy status</button>
+          <span class="status" id="copy-result" role="status"></span>
+        </div>
+      </section>
+
+      <h2>Settings</h2>
       <p class="muted" id="source"></p>
-      <p class="notice" id="warning" hidden></p>
 
       <form id="form">
         <fieldset id="fields">

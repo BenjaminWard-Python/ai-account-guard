@@ -134,16 +134,22 @@
     return !!obj && POLICY_KEYS.some((k) => obj[k] !== undefined);
   }
 
-  // True when IT force-installed the extension (ExtensionInstallForcelist). getSelf needs no
+  // How the extension was installed: "admin" (force-installed by IT), "normal" (Chrome Web
+  // Store), "development" (unpacked), "sideload", "other", or "" if unknown. getSelf needs no
   // "management" permission.
-  async function isAdminInstalled() {
+  async function getInstallType() {
     const management = root.chrome && root.chrome.management;
-    if (!management || !management.getSelf) return false;
+    if (!management || !management.getSelf) return "";
     try {
-      return (await management.getSelf()).installType === "admin";
+      return (await management.getSelf()).installType || "";
     } catch (_) {
-      return false;
+      return "";
     }
+  }
+
+  // True when IT force-installed the extension (ExtensionInstallForcelist).
+  async function isAdminInstalled() {
+    return (await getInstallType()) === "admin";
   }
 
   // Returns { config, source } where source is "managed", "awaiting-policy", "local", or
@@ -168,6 +174,87 @@
     return { config: normalizeConfig({}), source: "default" };
   }
 
+  const SETUP_URL = "https://stratitsolutions.com/ai-account-guard/setup/";
+
+  // Plain-language health check for the settings page. Returns rows to show, problems with
+  // their fixes (for IT), and a text summary to paste into a support ticket.
+  function statusReport({ config, source, installType, version, extensionId }) {
+    const rows = [];
+    const problems = [];
+    const add = (label, value, state) => rows.push({ label, value, state: state || "" });
+
+    add("Settings", {
+      managed: "From your organization",
+      "awaiting-policy": "Waiting for your IT team's settings",
+      local: "Saved on this computer",
+      default: "Not set up",
+    }[source] || source, source === "managed" ? "ok" : source === "local" ? "" : "bad");
+
+    add("Installed by", {
+      admin: "Your organization (staff can't remove it)",
+      normal: "This browser's user, from the Chrome Web Store",
+      development: "A developer (loaded unpacked)",
+      sideload: "Another program on this computer",
+    }[installType] || "Unknown", installType === "admin" ? "ok" : source === "managed" ? "warn" : "");
+
+    add("Version", version || "Unknown");
+
+    const domains = config.AllowedDomains;
+    add("Approved email domains", domains.length ? domains.map((d) => "@" + d).join(", ") : "None, so every sign-in is blocked",
+      domains.length ? "ok" : "bad");
+
+    const ms = identityProviderAllowed("microsoft", config);
+    add("Sign in with Microsoft", ms ? `Allowed for tenant ${config.MicrosoftTenantId}` : "Blocked",
+      config.AllowMicrosoftSignIn && !ms ? "warn" : "");
+    const google = identityProviderAllowed("google", config);
+    add("Sign in with Google", google ? `Allowed for ${headerDomains(config).join(", ")}` : "Blocked");
+
+    const counts = { enforce: 0, block: 0, off: 0 };
+    for (const p of root.AIGuard.PROVIDERS) counts[config.ProviderModes[p.id]]++;
+    add("AI services", `${counts.enforce} work accounts only, ${counts.block} blocked, ${counts.off} not managed`,
+      counts.off === root.AIGuard.PROVIDERS.length ? "warn" : "");
+
+    if (source === "awaiting-policy") {
+      problems.push({
+        text: "Your IT team installed AI Account Guard, but its settings haven't arrived. Until they do, every sign-in on AI services is blocked.",
+        fix: `Open chrome://policy and click Reload policies. If there's no section for ${extensionId || "the extension"}, the settings were never sent: installing the extension doesn't send them. Make the settings file at ${SETUP_URL} and push it with the same tool that installs the extension.`,
+      });
+    } else if (source === "default") {
+      problems.push({
+        text: "AI Account Guard isn't set up, so every sign-in on AI services is blocked.",
+        fix: `Organizations: push the settings with Intune, Jamf or Google Admin (${SETUP_URL}). On your own: add your email domain below and save.`,
+      });
+    } else if (!domains.length) {
+      problems.push({
+        text: "The settings don't list any approved email domains, so every sign-in is blocked.",
+        fix: "Add your organization's email domains to AllowedDomains.",
+      });
+    }
+    if (config.AllowMicrosoftSignIn && !config.MicrosoftTenantId) {
+      problems.push({
+        text: '"Sign in with Microsoft" is turned on, but there\'s no tenant ID, so it stays blocked.',
+        fix: "Add MicrosoftTenantId (Entra admin center > Overview > Tenant ID), or use the setup page, which looks it up.",
+      });
+    }
+    if (source === "managed" && installType && installType !== "admin") {
+      problems.push({
+        text: "Settings come from your organization, but the extension isn't force-installed, so staff can remove it.",
+        fix: `Force-install it with ExtensionInstallForcelist. The files from ${SETUP_URL} include this.`,
+      });
+    }
+    if (counts.off === root.AIGuard.PROVIDERS.length) {
+      problems.push({ text: "Every AI service is set to Not managed, so nothing is checked.", fix: "Set the services you use to Work accounts only." });
+    }
+
+    const text = [
+      "AI Account Guard status",
+      ...rows.map((r) => `${r.label}: ${r.value}`),
+      ...problems.map((p) => `Problem: ${p.text}`),
+      `Extension ID: ${extensionId || "unknown"}`,
+    ].join("\n");
+    return { rows, problems, text };
+  }
+
   root.AIGuard = Object.assign(root.AIGuard || {}, {
     DEFAULTS,
     POLICY_KEYS,
@@ -182,6 +269,9 @@
     normalizeConfig,
     safeHttpUrl,
     identityProviderAllowed,
+    getInstallType,
+    statusReport,
+    SETUP_URL,
     loadConfig,
   });
 })(globalThis);

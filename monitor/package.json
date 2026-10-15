@@ -1,0 +1,12 @@
+{
+  "name": "ai-account-guard-login-check",
+  "private": true,
+  "type": "module",
+  "description": "Daily check that AI Account Guard still recognizes the real AI sign-in pages.",
+  "scripts": {
+    "check": "node check.mjs"
+  },
+  "dependencies": {
+    "puppeteer": "^25.12.0"
+  }
+}

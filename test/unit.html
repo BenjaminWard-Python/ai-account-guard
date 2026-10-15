@@ -105,6 +105,78 @@
       assertEqual(r.source, "default");
     });
 
+    // ---- status panel ----
+    const report = (over) => G.statusReport({ version: "0.1.4", extensionId: "id", installType: "admin", source: "managed", ...over });
+    const problemText = (r) => r.problems.map((p) => p.text).join(" | ");
+    test("status: healthy managed install has no problems", () => {
+      const r = report({ config: cfg({ AllowMicrosoftSignIn: true, MicrosoftTenantId: "t", AllowGoogleSignIn: false }) });
+      assertEqual(r.problems, []);
+      assert(r.rows.find((x) => x.label === "Settings").state === "ok");
+      assert(r.rows.find((x) => x.label === "Sign in with Microsoft").value.includes("tenant t"));
+      assert(r.text.includes("Version: 0.1.4"), "summary for tickets");
+    });
+    test("status: IT install without settings explains the fix", () => {
+      const r = report({ config: G.normalizeConfig({}), source: "awaiting-policy" });
+      assert(/settings haven't arrived/.test(problemText(r)));
+      assert(r.problems[0].fix.includes("chrome://policy") && r.problems[0].fix.includes(G.SETUP_URL));
+      assertEqual(r.problems.length, 1, "no duplicate 'no domains' problem");
+    });
+    test("status: managed settings without domains", () => {
+      const r = report({ config: G.normalizeConfig({ OrganizationName: "X" }) });
+      assert(/don't list any approved email domains/.test(problemText(r)));
+    });
+    test("status: Microsoft on without tenant ID", () => {
+      const r = report({ config: cfg({ AllowMicrosoftSignIn: true }) });
+      assert(/no tenant ID/.test(problemText(r)));
+      assertEqual(r.rows.find((x) => x.label === "Sign in with Microsoft").state, "warn");
+    });
+    test("status: managed settings but not force-installed", () => {
+      const r = report({ config: cfg(), installType: "normal" });
+      assert(/isn't force-installed/.test(problemText(r)));
+    });
+    test("status: self-installed with local settings is fine", () => {
+      const r = report({ config: cfg(), source: "local", installType: "normal" });
+      assertEqual(r.problems, []);
+    });
+    test("status: not set up", () => {
+      const r = report({ config: G.normalizeConfig({}), source: "default", installType: "normal" });
+      assert(/isn't set up/.test(problemText(r)));
+    });
+
+    // ---- sign-in recognition (labels seen on the real sign-in pages) ----
+    const idOf = (label) => { const r = G.classifySignInLabel(label); return r && r.id ? r.id : r; };
+    test("sign-in labels from real AI login pages are classified", () => {
+      assertEqual(idOf("Continue with Google"), "google");
+      assertEqual(idOf("Log in with Google"), "google");
+      assertEqual(idOf("Login with Apple"), "apple");
+      assertEqual(idOf("Sign in with Microsoft"), "microsoft");
+      assertEqual(idOf("Login with 𝕏"), "x");
+      assertEqual(idOf("Login with GitHub"), "github");
+      assertEqual(idOf("Use phone"), "phone");
+      assertEqual(idOf("Continue with phone"), "phone");
+      assertEqual(idOf("Continue with SSO"), "enterprise");
+      assertEqual(idOf("Continue with email"), null);
+      assertEqual(idOf("Login with email"), null);
+      assertEqual(idOf("Continue"), null);
+    });
+    test("unrecognized third-party sign-ins are flagged for review", () => {
+      assert(G.isUnrecognizedSignIn("Continue with LinkedIn"));
+      assert(G.isUnrecognizedSignIn("Sign in with Passkey"));
+      assert(!G.isUnrecognizedSignIn("Continue with Google"));
+      assert(!G.isUnrecognizedSignIn("Continue with email"));
+      assert(!G.isUnrecognizedSignIn("Continue with SSO"));
+      assert(!G.isUnrecognizedSignIn("Send message"));
+    });
+
+    test("Copilot's current and old addresses are both covered", () => {
+      assertEqual(G.providerForHost("copilot.com").id, "copilot");
+      assertEqual(G.providerForHost("www.copilot.com").id, "copilot");
+      assertEqual(G.providerForHost("copilot.microsoft.com").id, "copilot");
+      const dyn = G.buildDynamicRules(cfg());
+      const msBlock = dyn.find((r) => r.action.type === "redirect" && r.condition.requestDomains.includes("login.microsoftonline.com"));
+      assert(msBlock.condition.initiatorDomains.includes("copilot.com"), "Microsoft sign-in started from copilot.com is blocked");
+    });
+
     test("provider lookup by host", () => {
       assertEqual(G.providerForHost("chatgpt.com").id, "chatgpt");
       assertEqual(G.providerForHost("auth.openai.com").id, "chatgpt");
