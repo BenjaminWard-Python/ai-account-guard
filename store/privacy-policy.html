@@ -7,8 +7,9 @@
     <meta name="description" content="AI Account Guard privacy policy." />
     <link rel="canonical" href="https://stratitsolutions.com/ai-account-guard/privacy/" />
     <link rel="stylesheet" href="/styles.css" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/ai-account-guard/aag.css" />
+    <link rel="icon" type="image/png" href="/ai-account-guard/assets/icon-48.png" />
+    <link rel="apple-touch-icon" href="/ai-account-guard/assets/icon-128.png" />
     <style>
       .policy { max-width: 760px; margin: 0 auto; padding: 48px 18px 72px; }
       .policy h1 { font-size: 34px; line-height: 1.2; margin: 0 0 6px; color: var(--ink); }
@@ -17,18 +18,21 @@
       .policy a { color: var(--accent); }
       .policy ul { padding-left: 22px; }
       .policy li { margin: 8px 0; }
-      .brand { text-decoration: none; }
     </style>
   </head>
   <body>
     <!-- Generated from docs/PRIVACY.md in the ai-account-guard repo by scripts/build-privacy-html.py.
          Edit the Markdown there and regenerate, rather than editing this file. -->
-    <header class="nav">
-      <div class="container nav-inner">
-        <a class="brand" href="/">
-          <img class="brand-mark" src="/stratit-shield.png" alt="" />
-          <span>StratIT Solutions</span>
+    <header class="aag-header">
+      <div class="container aag-header-inner">
+        <a class="aag-brand" href="/ai-account-guard/">
+          <img src="/ai-account-guard/assets/icon-48.png" alt="" />
+          <span>AI Account Guard</span>
         </a>
+        <nav class="aag-nav" aria-label="AI Account Guard">
+          <a href="/ai-account-guard/">About</a>
+          <a class="btn aag-primary" href="/ai-account-guard/setup/">Set up</a>
+        </nav>
       </div>
     </header>
     <main class="policy">
@@ -66,5 +70,16 @@
 <h2>Contact</h2>
 <p>Questions about this policy: <a href="mailto:support@stratitsolutions.com">support@stratitsolutions.com</a></p>
     </main>
+    <footer class="aag-footer">
+      <div class="container aag-footer-inner">
+        <div>AI Account Guard is a <a href="/">StratIT Solutions</a> product.</div>
+        <nav class="aag-footer-links" aria-label="AI Account Guard links">
+          <a href="/ai-account-guard/">About</a>
+          <a href="/ai-account-guard/setup/">Setup</a>
+          <a href="https://github.com/BenjaminWard-Python/ai-account-guard">GitHub</a>
+          <a href="mailto:support@stratitsolutions.com">Support</a>
+        </nav>
+      </div>
+    </footer>
   </body>
 </html>

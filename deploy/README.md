@@ -1,5 +1,9 @@
 # Deploying AI Account Guard
 
+**Quickest:** the [setup page](https://stratitsolutions.com/ai-account-guard/setup/) builds a ready-to-deploy file
+for Jamf, Intune or the Google Admin console from a few answers, and looks up your Microsoft
+tenant ID for you. The templates below are the same files, for editing by hand.
+
 Every method does two things: **force-install** the extension, and push its **policy**
 (the settings in the main README). The templates already contain the extension's Chrome Web
 Store ID, `jhhgomolhbopcedgcnilbggglnfikmfd`; edit the example values for your organization.

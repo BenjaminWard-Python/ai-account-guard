@@ -29,7 +29,13 @@ This guide takes about 15 minutes: try it on one computer, then roll it out.
 
 ## 3. Roll it out to your organization
 
-Push the extension and its settings from the tool you already use. Ready-made templates
+**Quickest:** the [setup page](https://stratitsolutions.com/ai-account-guard/setup/) looks up your domain (and your Microsoft
+tenant ID, if you use Microsoft 365), asks a few questions, and builds a ready-to-deploy file
+for Jamf, Intune or the Google Admin console, with instructions for each. It runs entirely in
+your browser.
+
+To edit files by hand instead, push the extension and its settings from the tool you already
+use. Ready-made templates
 are in the [`deploy`](../deploy/) folder, with step-by-step instructions in
 [`deploy/README.md`](../deploy/README.md):
 

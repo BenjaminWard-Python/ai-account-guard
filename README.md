@@ -9,7 +9,9 @@ Built for small organizations (nonprofits, local government, small businesses) t
 this control without an enterprise browser or SSE platform. IT configures it centrally
 through Intune, Jamf, or the Google Admin console.
 
-**New here? Start with the [Getting started guide](docs/GETTING_STARTED.md).**
+**New here? Start with the [Getting started guide](docs/GETTING_STARTED.md)**, or make your
+deployment file on the [setup page](https://stratitsolutions.com/ai-account-guard/setup/).
+Product page: https://stratitsolutions.com/ai-account-guard/
 
 ## How it works
 

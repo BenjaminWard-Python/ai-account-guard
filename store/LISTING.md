@@ -49,6 +49,7 @@ WHAT IT DOES
 
 BUILT FOR IT TEAMS
 • Configure centrally with Microsoft Intune, Jamf, or the Google Admin console. Users can't remove it or change its settings.
+• A free setup page builds your deployment file in minutes: stratitsolutions.com/ai-account-guard/setup
 • Ready-made deployment templates and a step-by-step guide are in the project's GitHub repository
 • Smaller teams without device management can configure it on each computer from its settings page
 
@@ -72,7 +73,8 @@ It protects Chrome only. For full coverage, also block other browsers and deskto
 | Screenshot 3 | `store/assets/screenshot-3-sso.png` |
 | Small promo tile (440×280) | `store/assets/promo-small-440x280.png` |
 
-**Homepage URL:** https://github.com/BenjaminWard-Python/ai-account-guard
+**Homepage URL:** https://stratitsolutions.com/ai-account-guard/ (product page, which links to the
+setup page, privacy policy and GitHub).
 **Support URL:** optional. Your verified contact email (support@stratitsolutions.com) is shown on
 the listing either way; add a StratIT support page here later if you make one.
 
