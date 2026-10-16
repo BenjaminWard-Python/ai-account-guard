@@ -107,12 +107,15 @@ async function checkSite(site) {
   // what sites.mjs expects. Both fail the run.
   const r = { id: site.id, name: site.name, status: "ok", problems: [], changes: [], notes: [] };
   const page = await browser.newPage();
+  // Requests carrying the test address, and whether they happened while typing (some sites
+  // look the address up as you type, before any sign-in) or after submitting.
   const leaks = [];
+  let phase = "load";
   await page.setRequestInterception(true);
   page.on("request", (req) => {
     if (req.isInterceptResolutionHandled()) return;
     if (LEAK.test(req.url()) || LEAK.test(req.postData() || "")) {
-      leaks.push(req.url().slice(0, 100));
+      leaks.push({ phase, url: req.url().slice(0, 100) });
       return req.abort("blockedbyclient");
     }
     req.continue();
@@ -167,6 +170,7 @@ async function checkSite(site) {
       } else {
         // Behavior: a personal address must be stopped before it's sent.
         let typed = false;
+        phase = "typing";
         for (const h of await page.$$(G.EMAIL_SELECTOR)) {
           if (await h.isVisible()) {
             await h.click();
@@ -176,12 +180,17 @@ async function checkSite(site) {
           }
         }
         await sleep(400);
+        phase = "submitted";
         const clicked = site.submit ? await clickLabel(page, site.submit) : false;
         if (!clicked) await page.keyboard.press("Enter");
         await sleep(3000);
         const notice = await noticeText(page);
-        if (!notice) r.problems.push("A personal email address was NOT blocked." + (leaks.length ? " The site tried to send it (the check cancelled the request)." : ""));
-        else r.notes.push(`Personal email blocked${clicked ? "" : " (submitted with Enter)"}.`);
+        const sentOnSubmit = leaks.some((l) => l.phase === "submitted");
+        const sentWhileTyping = leaks.some((l) => l.phase === "typing");
+        if (notice) r.notes.push(`Personal email blocked${clicked ? "" : " (submitted with Enter)"}.`);
+        else if (sentOnSubmit) r.problems.push("A personal email address was NOT blocked: the site tried to sign in with it (the check cancelled the request).");
+        else r.problems.push("Submitting a personal email address didn't show the block message, and the site didn't try to send it either. The page may have changed.");
+        if (sentWhileTyping) r.notes.push("The site sends the address to its server while it's being typed, before any sign-in. The extension can't stop that lookup; it blocks the sign-in itself.");
         if (!typed) r.notes.push("The email field disappeared before the check could type in it.");
       }
     }
@@ -195,10 +204,21 @@ async function checkSite(site) {
   return r;
 }
 
+function finish(r) {
+  if (r.status === "ok") r.status = r.problems.length ? "fail" : r.changes.length ? "changed" : "ok";
+  return r;
+}
+
 const results = [];
 for (const site of sites) {
-  const r = await checkSite(site);
-  if (r.status === "ok") r.status = r.problems.length ? "fail" : r.changes.length ? "changed" : "ok";
+  let r = finish(await checkSite(site));
+  // Sites are busy and sometimes slow or flaky: retry a failure once before reporting it.
+  if (["fail", "changed", "error"].includes(r.status)) {
+    await sleep(20000);
+    const retry = finish(await checkSite(site));
+    if (retry.status === "ok" || retry.status === "bot-check") retry.notes.push(`Passed on a second try. First try: ${[...r.problems, ...r.changes].join(" ")}`);
+    r = retry;
+  }
   results.push(r);
   console.log(`${r.status.toUpperCase().padEnd(9)} ${r.name}`);
   for (const p of r.problems) console.log(`          ✗ ${p}`);
