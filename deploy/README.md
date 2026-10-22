@@ -57,14 +57,31 @@ settings arrive. (Earlier versions let users edit the settings themselves in tha
 
 ## Google Workspace (Admin console)
 
-1. Admin console → **Chrome browser → Apps & extensions → Users & browsers** (or
-   **Managed browsers**). Select the org unit.
+The Admin console manages Chrome (not Edge). Chromebooks are covered automatically. On Windows
+and Macs it only reaches Chrome that is **enrolled in Chrome Enterprise Core** (free with
+Google Workspace); enrolled Chrome gets the settings in every profile. Without enrollment, the
+settings reach only staff signed in to Chrome with their work account, in that profile alone.
+
+**Enroll Chrome** (once per computer):
+
+1. Admin console → **Chrome browser → Managed browsers → Enroll (+)**, and copy the enrollment
+   token for your staff's org unit.
+2. Put the token on each computer, then quit and reopen Chrome:
+   - Windows (Command Prompt as administrator):
+     `reg add "HKLM\SOFTWARE\Policies\Google\Chrome" /v CloudManagementEnrollmentToken /t REG_SZ /d <token> /f`
+   - Mac (Terminal):
+     `sudo mkdir -p "/Library/Google/Chrome" && printf %s "<token>" | sudo tee "/Library/Google/Chrome/CloudManagementEnrollmentToken" > /dev/null`
+3. `chrome://management` should say the browser is managed, and it appears under **Managed browsers**.
+
+**Install and configure the extension:**
+
+1. Admin console → **Chrome browser → Apps & extensions → Managed browsers** (or **Users &
+   browsers** if you aren't enrolling browsers). Select the org unit.
 2. **+ → Add Chrome app or extension by ID**, enter `jhhgomolhbopcedgcnilbggglnfikmfd`, and set
    **Installation policy** = *Force install*.
 3. In the extension's **Policy for extensions** box, paste
-   [google-admin/extension-policy.json](google-admin/extension-policy.json) after editing it.
-
-This works for Chromebooks and for Chrome browsers enrolled in Chrome Browser Cloud Management.
+   [google-admin/extension-policy.json](google-admin/extension-policy.json) after editing it, or
+   the settings the [setup page](https://stratitsolutions.com/ai-account-guard/setup/) builds.
 
 ## Microsoft Edge
 
