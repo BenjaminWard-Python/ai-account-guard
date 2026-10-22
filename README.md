@@ -44,6 +44,20 @@ the settings page is read-only.
 | `TenantRestrictionScope` | `ai-sites` \| `all-browsing` | `ai-sites` | Where the Google/Microsoft restrictions apply. |
 | `ProviderModes` | object | | Per service: `enforce` (work accounts only), `block`, or `off`. IDs: `chatgpt`, `claude`, `gemini`, `copilot`, `perplexity`, `deepseek`, `grok`, `mistral`, `poe`, `meta`. Meta AI defaults to `block` (it only supports personal accounts). |
 | `SignOutOnInstall` | bool | `false` | On first install, clear cookies/site data for covered services so existing personal sessions end. Gemini and Copilot are skipped (their cookies are shared with all of Google/Microsoft). |
+| `DashboardUrl` | string | | Optional, paid: take settings from an AI Account Guard dashboard instead. Only dashboards built into the extension are accepted. |
+| `DashboardOrgKey` | string | | The organization's key from the dashboard's Deploy page. |
+
+### Dashboard (optional)
+
+With `DashboardUrl` and `DashboardOrgKey` set, the extension fetches its settings from the
+dashboard when the browser starts and about every 6 hours. Settings are signed by the
+dashboard and verified before use (and again on every read), and a revision older than the
+one already held is refused. Until verified settings arrive, every sign-in on covered
+services is blocked. Any other keys deployed alongside act as a **floor**: the dashboard can
+make them stricter but never looser. If the organization turns on coverage reporting, the
+extension also sends its own status (a random device ID, versions, install type, settings
+revision and problem codes; never user or browsing data). Without these two keys the
+extension makes no network requests of its own.
 
 ## Try it locally
 

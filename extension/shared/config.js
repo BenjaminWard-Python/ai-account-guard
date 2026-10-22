@@ -152,21 +152,41 @@
     return (await getInstallType()) === "admin";
   }
 
-  // Returns { config, source } where source is "managed", "awaiting-policy", "local", or
-  // "default".
+  // Policy as IT deployed it. For unpacked (developer) installs only, chrome.storage.local
+  // "devManaged" stands in for device management, so the dashboard connection can be tested
+  // without administrator rights; store-installed copies never read it.
+  async function readManaged(storage) {
+    let managed = {};
+    try {
+      managed = (await storage.managed.get(null)) || {};
+    } catch (_) {
+      // storage.managed throws when no schema/policy is available; treat as unmanaged.
+    }
+    if ((await getInstallType()) === "development") {
+      try {
+        const dev = ((await storage.local.get("devManaged")) || {}).devManaged;
+        if (dev && typeof dev === "object") managed = { ...managed, ...dev };
+      } catch (_) {}
+    }
+    return managed;
+  }
+
+  // Returns { config, source, dashboard? } where source is "dashboard", "awaiting-dashboard",
+  // "managed", "awaiting-policy", "local", or "default".
   async function loadConfig() {
     const storage = root.chrome && root.chrome.storage;
     let managed = {};
     let local = {};
     if (storage) {
-      try {
-        managed = (await storage.managed.get(null)) || {};
-      } catch (_) {
-        // storage.managed throws when no schema/policy is available; treat as unmanaged.
-      }
+      managed = await readManaged(storage);
       try {
         local = ((await storage.local.get("settings")) || {}).settings || {};
       } catch (_) {}
+      // Connected to a dashboard: its signed settings (with any deployed floor) win.
+      if (root.AIGuard.dashboardConfig) {
+        const fromDashboard = await root.AIGuard.dashboardConfig(managed, storage);
+        if (fromDashboard) return fromDashboard;
+      }
     }
     if (hasAnyKey(managed)) return { config: normalizeConfig(managed), source: "managed" };
     if (await isAdminInstalled()) return { config: normalizeConfig({}), source: "awaiting-policy" };
@@ -178,24 +198,33 @@
 
   // Plain-language health check for the settings page. Returns rows to show, problems with
   // their fixes (for IT), and a text summary to paste into a support ticket.
-  function statusReport({ config, source, installType, version, extensionId }) {
+  function statusReport({ config, source, installType, version, extensionId, dashboard }) {
     const rows = [];
     const problems = [];
     const add = (label, value, state) => rows.push({ label, value, state: state || "" });
 
+    const fromOrg = source === "managed" || source === "dashboard";
     add("Settings", {
+      dashboard: `From your organization's dashboard (revision ${dashboard && dashboard.revision})`,
+      "awaiting-dashboard": "Waiting for settings from your organization's dashboard",
       managed: "From your organization",
       "awaiting-policy": "Waiting for your IT team's settings",
       local: "Saved on this computer",
       default: "Not set up",
-    }[source] || source, source === "managed" ? "ok" : source === "local" ? "" : "bad");
+    }[source] || source, fromOrg ? "ok" : source === "local" ? "" : "bad");
+    if (dashboard) {
+      const checked = dashboard.checkedAt ? new Date(dashboard.checkedAt).toLocaleString() : "not yet";
+      add("Dashboard", `${dashboard.origin || "not an approved dashboard"} · last checked ${checked}`,
+        dashboard.invalid || dashboard.error ? "warn" : "ok");
+      add("Coverage reporting", dashboard.coverage ? "On: this computer sends its status to the dashboard" : "Off");
+    }
 
     add("Installed by", {
       admin: "Your organization (staff can't remove it)",
       normal: "This browser's user, from the Chrome Web Store",
       development: "A developer (loaded unpacked)",
       sideload: "Another program on this computer",
-    }[installType] || "Unknown", installType === "admin" ? "ok" : source === "managed" ? "warn" : "");
+    }[installType] || "Unknown", installType === "admin" ? "ok" : fromOrg ? "warn" : "");
 
     add("Version", version || "Unknown");
 
@@ -214,36 +243,75 @@
     add("AI services", `${counts.enforce} work accounts only, ${counts.block} blocked, ${counts.off} not managed`,
       counts.off === root.AIGuard.PROVIDERS.length ? "warn" : "");
 
+    if (dashboard && dashboard.invalid) {
+      problems.push({
+        code: "dashboard-not-allowed",
+        text: "The dashboard address or organization key deployed to this computer isn't valid, so no settings can arrive and every sign-in is blocked.",
+        fix: "Download the deployment file again from the dashboard's Deploy page and redeploy it.",
+      });
+    } else if (source === "awaiting-dashboard") {
+      problems.push({
+        code: "awaiting-dashboard",
+        text: "Settings from your organization's dashboard haven't arrived yet. Until they do, every sign-in on AI services is blocked.",
+        fix: "Check this computer can reach the dashboard, and that settings have been saved there. The extension checks again within a few minutes.",
+      });
+    }
+    if (dashboard && dashboard.error === "unreachable") {
+      problems.push({
+        code: "dashboard-unreachable",
+        text: "The last attempt to reach the dashboard failed.",
+        fix: "This computer keeps using the last settings it received. Check its internet access and firewall.",
+      });
+    }
+    if (dashboard && dashboard.error === "unknown-organization") {
+      problems.push({
+        code: "dashboard-not-allowed",
+        text: "The dashboard doesn't recognize the organization key deployed to this computer.",
+        fix: "The key may have been replaced. Download the deployment file again from the dashboard's Deploy page and redeploy it.",
+      });
+    }
+    if (dashboard && dashboard.error === "bad-signature") {
+      problems.push({
+        code: "bad-signature",
+        text: "Settings received from the dashboard failed the signature check and were ignored.",
+        fix: "Contact StratIT support. This computer keeps using the last good settings.",
+      });
+    }
     if (source === "awaiting-policy") {
       problems.push({
+        code: "awaiting-policy",
         text: "Your IT team installed AI Account Guard, but its settings haven't arrived. Until they do, every sign-in on AI services is blocked.",
         fix: `Open chrome://policy and click Reload policies. If there's no section for ${extensionId || "the extension"}, the settings were never sent: installing the extension doesn't send them. Make the settings file at ${SETUP_URL} and push it with the same tool that installs the extension.`,
       });
     } else if (source === "default") {
       problems.push({
+        code: "not-set-up",
         text: "AI Account Guard isn't set up, so every sign-in on AI services is blocked.",
         fix: `Organizations: push the settings with Intune, Jamf or Google Admin (${SETUP_URL}). On your own: add your email domain below and save.`,
       });
-    } else if (!domains.length) {
+    } else if (!domains.length && source !== "awaiting-dashboard") {
       problems.push({
+        code: "no-domains",
         text: "The settings don't list any approved email domains, so every sign-in is blocked.",
         fix: "Add your organization's email domains to AllowedDomains.",
       });
     }
     if (config.AllowMicrosoftSignIn && !config.MicrosoftTenantId) {
       problems.push({
+        code: "microsoft-no-tenant",
         text: '"Sign in with Microsoft" is turned on, but there\'s no tenant ID, so it stays blocked.',
         fix: "Add MicrosoftTenantId (Entra admin center > Overview > Tenant ID), or use the setup page, which looks it up.",
       });
     }
-    if (source === "managed" && installType && installType !== "admin") {
+    if (fromOrg && installType && installType !== "admin" && installType !== "development") {
       problems.push({
+        code: "not-force-installed",
         text: "Settings come from your organization, but the extension isn't force-installed, so staff can remove it.",
         fix: `Force-install it with ExtensionInstallForcelist. The files from ${SETUP_URL} include this.`,
       });
     }
     if (counts.off === root.AIGuard.PROVIDERS.length) {
-      problems.push({ text: "Every AI service is set to Not managed, so nothing is checked.", fix: "Set the services you use to Work accounts only." });
+      problems.push({ code: "all-off", text: "Every AI service is set to Not managed, so nothing is checked.", fix: "Set the services you use to Work accounts only." });
     }
 
     const text = [
@@ -270,6 +338,7 @@
     safeHttpUrl,
     identityProviderAllowed,
     getInstallType,
+    readManaged,
     statusReport,
     SETUP_URL,
     loadConfig,

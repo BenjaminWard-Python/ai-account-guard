@@ -11,6 +11,7 @@
   <ul id="results"></ul>
   <script src="../extension/shared/providers.js"></script>
   <script src="../extension/shared/config.js"></script>
+  <script src="../extension/shared/dashboard.js"></script>
   <script src="../extension/shared/rules.js"></script>
   <script src="assert.js"></script>
   <script>
@@ -70,12 +71,13 @@
       assert(!G.identityProviderAllowed("microsoft-personal", cfg({ AllowMicrosoftSignIn: true, MicrosoftTenantId: "abc" })));
     });
     // loadConfig with a mocked chrome.storage / chrome.management.
-    async function loadWith({ managed = {}, local = {}, installType = "normal" }) {
+    async function loadWith({ managed = {}, local = {}, installType = "normal", store = {} }) {
       const saved = globalThis.chrome;
+      const all = { settings: local, ...store };
       globalThis.chrome = {
         storage: {
           managed: { get: async () => managed },
-          local: { get: async () => ({ settings: local }) },
+          local: { get: async (k) => (typeof k === "string" ? { [k]: all[k] } : all) },
         },
         management: { getSelf: async () => ({ installType }) },
       };
@@ -183,6 +185,85 @@
       const dyn = G.buildDynamicRules(cfg());
       const msBlock = dyn.find((r) => r.action.type === "redirect" && r.condition.requestDomains.includes("login.microsoftonline.com"));
       assert(msBlock.condition.initiatorDomains.includes("copilot.com"), "Microsoft sign-in started from copilot.com is blocked");
+    });
+
+    // ---- dashboard (0.2) ----
+    // A throwaway signing key stands in for a dashboard at TEST_ORIGIN.
+    const TEST_ORIGIN = "https://dashboard.test";
+    const ORG = "aag_" + "k".repeat(43);
+    const enc = new TextEncoder();
+    const toB64 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf)));
+    const toB64url = (buf) => toB64(buf).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    let testKey = null;
+    async function signedDoc(revision, settings, { orgKey = ORG, key = null } = {}) {
+      if (!testKey) {
+        testKey = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]);
+        G.DASHBOARDS[TEST_ORIGIN] = toB64(await crypto.subtle.exportKey("spki", testKey.publicKey));
+      }
+      const payload = JSON.stringify({ v: 1, org: await G.sha256Hex(orgKey), revision, issuedAt: "2026-10-22T00:00:00Z", settings });
+      const sig = await crypto.subtle.sign({ name: "ECDSA", hash: "SHA-256" }, (key || testKey).privateKey, enc.encode(payload));
+      return { payload, signature: toB64url(sig) };
+    }
+    const dashSettings = (over = {}) => ({ ...G.normalizeConfig({ AllowedDomains: ["example.org", "example.net"], AllowGoogleSignIn: true }), ...over });
+    const connected = { DashboardUrl: TEST_ORIGIN + "/", DashboardOrgKey: ORG };
+
+    test("dashboard: only built-in dashboards and well-formed keys connect", () => {
+      assertEqual(G.dashboardFromPolicy({}), null);
+      assert(G.dashboardFromPolicy({ DashboardUrl: "https://evil.example", DashboardOrgKey: ORG }).invalid, "unknown dashboard");
+      assert(G.dashboardFromPolicy({ DashboardUrl: "http://localhost:3200", DashboardOrgKey: "aag_short" }).invalid, "bad key");
+      assert(!G.dashboardFromPolicy({ DashboardUrl: "http://localhost:3200/", DashboardOrgKey: ORG }).invalid, "dev dashboard");
+    });
+    test("dashboard: signed settings verify; tampered, wrong-org and wrong-key ones don't", async () => {
+      const doc = await signedDoc(4, dashSettings());
+      assertEqual((await G.verifyDashboardDocument(doc, ORG, TEST_ORIGIN)).revision, 4);
+      const tampered = { ...doc, payload: doc.payload.replace('"chatgpt":"enforce"', '"chatgpt":"off"') };
+      assertEqual(await G.verifyDashboardDocument(tampered, ORG, TEST_ORIGIN), null);
+      assertEqual(await G.verifyDashboardDocument(doc, "aag_" + "z".repeat(43), TEST_ORIGIN), null);
+      const otherKey = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]);
+      assertEqual(await G.verifyDashboardDocument(await signedDoc(5, dashSettings(), { key: otherKey }), ORG, TEST_ORIGIN), null);
+      assertEqual(await G.verifyDashboardDocument(doc, ORG, "http://localhost:3200"), null, "signed for another dashboard");
+    });
+    test("dashboard: blocks everything until verified settings arrive", async () => {
+      const r = await loadWith({ managed: connected, installType: "admin" });
+      assertEqual(r.source, "awaiting-dashboard");
+      assertEqual(r.config.AllowedDomains, []);
+      const forged = await loadWith({ managed: connected, installType: "admin", store: { dashboard: { payload: '{"v":1}', signature: "AAAA" } } });
+      assertEqual(forged.source, "awaiting-dashboard", "a forged copy in local storage is ignored");
+    });
+    test("dashboard: verified settings are used", async () => {
+      const r = await loadWith({ managed: connected, installType: "admin", store: { dashboard: { ...(await signedDoc(7, dashSettings())), coverage: true } } });
+      assertEqual(r.source, "dashboard");
+      assertEqual(r.dashboard.revision, 7);
+      assertEqual(r.dashboard.coverage, true);
+      assertEqual(r.config.AllowedDomains, ["example.org", "example.net"]);
+    });
+    test("dashboard: a deployed floor can only be tightened", async () => {
+      const dash = dashSettings({ ProviderModes: { ...dashSettings().ProviderModes, chatgpt: "off", deepseek: "enforce" }, TenantRestrictionScope: "ai-sites" });
+      const floor = { AllowedDomains: ["example.org"], AllowGoogleSignIn: false, TenantRestrictionScope: "all-browsing", ProviderModes: { chatgpt: "enforce", deepseek: "block" } };
+      const out = G.applyFloor(dash, floor);
+      assertEqual(out.AllowedDomains, ["example.org"], "dashboard can't add domains");
+      assertEqual(out.AllowGoogleSignIn, false, "dashboard can't allow Google");
+      assertEqual(out.TenantRestrictionScope, "all-browsing");
+      assertEqual(out.ProviderModes.chatgpt, "enforce", "off can't loosen enforce");
+      assertEqual(out.ProviderModes.deepseek, "block");
+      assertEqual(out.ProviderModes.claude, dash.ProviderModes.claude, "services the floor doesn't name are untouched");
+      const r = await loadWith({ managed: { ...connected, ...floor }, installType: "admin", store: { dashboard: await signedDoc(8, dash) } });
+      assertEqual(r.config.AllowedDomains, ["example.org"]);
+      assert(r.dashboard.floor);
+    });
+    test("dashboard: the developer stand-in for policy works only for unpacked installs", async () => {
+      const store = { devManaged: connected, dashboard: await signedDoc(9, dashSettings()) };
+      assertEqual((await loadWith({ installType: "development", store })).source, "dashboard");
+      assertEqual((await loadWith({ installType: "normal", store })).source, "default");
+      assertEqual((await loadWith({ installType: "admin", store })).source, "awaiting-policy");
+    });
+    test("status: dashboard problems carry codes the dashboard understands", () => {
+      const codes = (over) => G.statusReport({ config: cfg(), installType: "admin", ...over }).problems.map((p) => p.code);
+      assertEqual(codes({ source: "awaiting-dashboard", config: G.normalizeConfig({}), dashboard: { origin: TEST_ORIGIN } }), ["awaiting-dashboard"]);
+      assertEqual(codes({ source: "dashboard", dashboard: { origin: TEST_ORIGIN, revision: 3, error: "unreachable" } }), ["dashboard-unreachable"]);
+      assertEqual(codes({ source: "dashboard", dashboard: { origin: TEST_ORIGIN, revision: 3, error: "bad-signature" } }), ["bad-signature"]);
+      assertEqual(codes({ source: "awaiting-dashboard", config: G.normalizeConfig({}), dashboard: { invalid: true } }), ["dashboard-not-allowed"]);
+      assertEqual(codes({ source: "dashboard", installType: "normal", dashboard: { origin: TEST_ORIGIN, revision: 3 } }), ["not-force-installed"]);
     });
 
     test("provider lookup by host", () => {

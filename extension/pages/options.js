@@ -21,28 +21,32 @@
     $("providers").append(row);
   }
 
-  function render({ config, source }) {
+  function render({ config, source, dashboard }) {
     $("AllowedDomains").value = config.AllowedDomains.join("\n");
     for (const f of TEXT_FIELDS) $(f).value = config[f];
     for (const f of CHECK_FIELDS) $(f).checked = config[f];
     for (const p of G.PROVIDERS) $("mode-" + p.id).value = config.ProviderModes[p.id];
 
-    const locked = source === "managed" || source === "awaiting-policy";
+    const locked = ["managed", "awaiting-policy", "dashboard", "awaiting-dashboard"].includes(source);
     $("fields").disabled = locked;
     $("source").textContent = {
+      dashboard: "These settings come from your organization's dashboard and can't be changed here.",
+      "awaiting-dashboard": "These settings will come from your organization's dashboard and can't be changed here.",
       managed: "These settings are managed by your organization and can't be changed here.",
       "awaiting-policy": "These settings will come from your IT team and can't be changed here.",
       local: "Using settings saved on this computer.",
       default: "Using default settings. Save to customize them for this computer.",
     }[source];
-    renderStatus({ config, source });
+    renderStatus({ config, source, dashboard });
+    $("sync-now").hidden = !dashboard;
   }
 
   let statusText = "";
-  async function renderStatus({ config, source }) {
+  async function renderStatus({ config, source, dashboard }) {
     const report = G.statusReport({
       config,
       source,
+      dashboard,
       installType: await G.getInstallType(),
       version: chrome.runtime.getManifest().version,
       extensionId: chrome.runtime.id,
@@ -72,6 +76,14 @@
   }
 
   $("open-policy").addEventListener("click", () => chrome.tabs.create({ url: "chrome://policy" }));
+  $("sync-now").addEventListener("click", async () => {
+    $("sync-now").disabled = true;
+    $("copy-result").textContent = "Checking…";
+    await chrome.runtime.sendMessage({ type: "syncDashboard" });
+    render((current = await G.loadConfig()));
+    $("copy-result").textContent = "Checked.";
+    $("sync-now").disabled = false;
+  });
   $("copy-status").addEventListener("click", async () => {
     try {
       await navigator.clipboard.writeText(statusText);
@@ -82,8 +94,8 @@
   });
 
   // Settings pushed by IT can arrive while this page is open.
-  chrome.storage.onChanged.addListener(async (_changes, area) => {
-    if (area === "managed") render((current = await G.loadConfig()));
+  chrome.storage.onChanged.addListener(async (changes, area) => {
+    if (area === "managed" || (area === "local" && (changes.dashboard || changes.devManaged))) render((current = await G.loadConfig()));
   });
 
   let current = await G.loadConfig();
@@ -92,7 +104,7 @@
   $("form").addEventListener("submit", async (e) => {
     e.preventDefault();
     // Settings from IT (or IT's install without settings yet) always win; never save over them.
-    if (current.source === "managed" || current.source === "awaiting-policy") return;
+    if (["managed", "awaiting-policy", "dashboard", "awaiting-dashboard"].includes(current.source)) return;
     const settings = { AllowedDomains: $("AllowedDomains").value.split(/[\s,]+/).filter(Boolean), ProviderModes: {} };
     for (const f of TEXT_FIELDS) settings[f] = $(f).value;
     for (const f of CHECK_FIELDS) settings[f] = $(f).checked;

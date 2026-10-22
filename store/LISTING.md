@@ -111,6 +111,7 @@ No account or login is needed to test. The extension has no servers and sends no
 | `declarativeNetRequest` | Blocks sign-in pages for personal identity providers (e.g. Apple, personal Microsoft accounts) when the sign-in starts from an AI service, blocks AI services the administrator has disabled, and adds Google's and Microsoft's tenant-restriction headers so only the organization's accounts can sign in. |
 | `webNavigation` | Detects when a tab is on an AI service, or is a sign-in popup opened by one, so restrictions apply only to AI sign-ins and not to the user's other browsing. |
 | `browsingData` | Optional administrator setting that clears cookies and site data for the covered AI services when the extension is installed, ending personal sessions that existed before rollout. Not used unless the administrator turns it on. |
+| `alarms` | Only for organizations using the optional AI Account Guard dashboard: checks the dashboard for updated settings about every 6 hours. Not used otherwise. |
 | Host permissions | AI service domains: to check the email address entered in their sign-in forms. Sign-in provider domains (Google, Microsoft, Apple, GitHub, Facebook, X, Discord, WeChat): to block or apply tenant restrictions to sign-ins started from those AI services. The extension does not request access to all websites. |
 
 **Remote code:** No, I am not using remote code.

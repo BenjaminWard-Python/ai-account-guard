@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AI Account Guard",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "Keeps staff on work accounts in ChatGPT, Claude and other AI services by blocking personal sign-ins.",
   "minimum_chrome_version": "121",
   "icons": {
@@ -20,7 +20,8 @@
     "storage",
     "declarativeNetRequest",
     "webNavigation",
-    "browsingData"
+    "browsingData",
+    "alarms"
   ],
   "host_permissions": [
     "https://*.accounts.google.com/*",

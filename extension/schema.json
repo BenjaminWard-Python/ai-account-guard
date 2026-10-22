@@ -56,6 +56,16 @@
       "title": "Sign out of AI services on install",
       "description": "When the extension is first installed, clear cookies and site data for covered AI services so existing personal sessions end.",
       "type": "boolean"
+    },
+    "DashboardUrl": {
+      "title": "Dashboard address",
+      "description": "Address of the AI Account Guard dashboard to take settings from (e.g. https://guard.stratitsolutions.com). Only dashboards built into the extension are accepted. Set together with DashboardOrgKey; other keys set alongside act as a floor the dashboard can only tighten.",
+      "type": "string"
+    },
+    "DashboardOrgKey": {
+      "title": "Dashboard organization key",
+      "description": "Your organization's key, from the dashboard's Deploy page.",
+      "type": "string"
     }
   }
 }
