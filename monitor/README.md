@@ -7,8 +7,9 @@ a personal sign-in through:
 - **Email field:** the page has an email field the extension recognizes, and a personal
   address typed into it is blocked. Nothing is ever sent: any request carrying the test
   address is cancelled.
-- **Sign-in buttons:** every "Continue with …" button is one the extension recognizes. A new
-  provider (say, "Continue with LinkedIn") would not be blocked, so it fails the check.
+- **Sign-in buttons:** every "Continue with …" button is one the extension knows by name. A new
+  provider (say, "Continue with LinkedIn") is still blocked as unrecognized, but the check
+  reports it so it can get its own entry.
 - **Page changes:** the sign-in buttons listed in [sites.mjs](sites.mjs) are still there.
 - **Blocked sites:** Meta AI is replaced by the extension's block page.
 
@@ -32,8 +33,8 @@ screenshots are attached to the run. Run it on demand from **Actions → Login p
 
 ## When it fails
 
-- **Not blocked / new sign-in button:** fix the recognition rules in
+- **Not blocked:** fix the recognition rules in
   `extension/shared/providers.js` (or the domains there and in `manifest.json` if a service
   moved), add a test in `test/`, and release a new version.
-- **Changed:** the page was redesigned but nothing got through. Check the screenshot and update
+- **Changed:** the page was redesigned, or has a new sign-in button, but nothing got through. Check the screenshot and update
   the site's entry in `sites.mjs`.

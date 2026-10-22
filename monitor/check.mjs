@@ -155,8 +155,8 @@ async function checkSite(site) {
     const found = new Set();
     for (const label of labels) {
       const method = G.classifySignInLabel(label);
-      if (method && method.id) found.add(method.id);
-      if (G.isUnrecognizedSignIn(label)) r.problems.push(`New sign-in button the extension doesn't recognize, so it isn't blocked: "${label}"`);
+      if (method && method.id && method.id !== "unknown") found.add(method.id);
+      if (G.isUnrecognizedSignIn(label)) r.changes.push(`New sign-in button "${label}". It's blocked as an unrecognized provider; give it an entry in IDENTITY_PROVIDERS (extension/shared/providers.js).`);
     }
     const missing = (site.signIns || []).filter((id) => !found.has(id));
     if (missing.length) r.changes.push(`Expected sign-in buttons not found: ${missing.join(", ")}. The sign-in page may have changed; update monitor/sites.mjs if so.`);

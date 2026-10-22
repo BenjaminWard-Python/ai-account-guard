@@ -25,8 +25,11 @@ Use [intune/Set-AIAccountGuardPolicy.ps1](intune/Set-AIAccountGuardPolicy.ps1):
    **Run script in 64 bit PowerShell Host** = *Yes*.
 4. Assign to your device group.
 
-The script writes to `HKLM\SOFTWARE\Policies\Google\Chrome`. It's safe to re-run, and
-rerunning it replaces the extension's policy.
+The script writes to `HKLM\SOFTWARE\Policies\Google\Chrome` and
+`HKLM\SOFTWARE\Policies\Microsoft\Edge` (set `$Browsers` to the ones you use). It's safe to
+re-run: rerunning it replaces the extension's settings and leaves other force-installed
+extensions alone. It's tested on Windows in
+[.github/workflows/intune-script.yml](../.github/workflows/intune-script.yml).
 
 ## Jamf Pro (macOS)
 
@@ -63,9 +66,31 @@ settings arrive. (Earlier versions let users edit the settings themselves in tha
 
 This works for Chromebooks and for Chrome browsers enrolled in Chrome Browser Cloud Management.
 
+## Microsoft Edge
+
+Edge installs AI Account Guard from the Chrome Web Store with the same extension ID and update
+URL, but reads its own policies: `HKLM\SOFTWARE\Policies\Microsoft\Edge` on Windows and the
+`com.microsoft.Edge` / `com.microsoft.Edge.extensions.jhhgomolhbopcedgcnilbggglnfikmfd`
+preference domains on macOS. The Intune script and Jamf profile set up both browsers; the
+Google Admin console manages Chrome only. Check Edge at `edge://policy`.
+
+## Private browsing
+
+Extensions don't run in incognito (Chrome), InPrivate (Edge) or guest windows, and no policy
+can force them on there, so a sign-in in one of those windows isn't checked. Turn them off:
+
+| | Chrome | Edge |
+|---|---|---|
+| Private windows | `IncognitoModeAvailability` = 1 | `InPrivateModeAvailability` = 1 |
+| Guest windows | `BrowserGuestModeEnabled` = false | `BrowserGuestModeEnabled` = false |
+
+The Intune script (`$BlockPrivateBrowsing`), the Jamf profile and the setup page include these
+by default. In the Google Admin console, set **Incognito mode** and **Browser guest mode** in the
+org unit's Chrome browser settings.
+
 ## Recommended pairings
 
-- Block or remove other browsers through your MDM, so Chrome is the only way to reach these services.
+- Block or remove other browsers through your MDM, so Chrome and Edge are the only ways to reach these services.
 - Turn on `SignOutOnInstall` for the first rollout so pre-existing personal sessions end.
 - If you use Microsoft 365, set `AllowMicrosoftSignIn` + `MicrosoftTenantId` and point
   `SsoPortalUrl` at `https://myapps.microsoft.com`.

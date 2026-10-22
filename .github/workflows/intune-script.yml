@@ -1,0 +1,78 @@
+# Runs deploy/intune/Set-AIAccountGuardPolicy.ps1 on a real Windows machine and checks what it
+# writes to the registry, including that other force-installed extensions survive.
+name: Intune script test
+
+on:
+  push:
+    paths:
+      - "deploy/intune/**"
+      - ".github/workflows/intune-script.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Does New-Item -Force wipe an existing key? (why the script uses Ensure-Key)
+        shell: powershell
+        continue-on-error: true
+        run: |
+          $k = "HKLM:\SOFTWARE\AAGProbe"
+          New-Item -Path $k -Force | Out-Null
+          New-ItemProperty -Path $k -Name "1" -Value "kept?" -PropertyType String -Force | Out-Null
+          New-Item -Path $k -Force | Out-Null
+          $after = (Get-Item $k).Property
+          if ($after -contains "1") { Write-Output "New-Item -Force kept the existing value." }
+          else { Write-Output "New-Item -Force wiped the existing value." }
+          Remove-Item $k -Recurse -Force
+
+      - name: Another extension is already force-installed
+        shell: powershell
+        run: |
+          foreach ($root in "HKLM:\SOFTWARE\Policies\Google\Chrome", "HKLM:\SOFTWARE\Policies\Microsoft\Edge") {
+            New-Item -Path "$root\ExtensionInstallForcelist" -Force | Out-Null
+            New-ItemProperty -Path "$root\ExtensionInstallForcelist" -Name "1" -Value "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa;https://example.com/update" -PropertyType String -Force | Out-Null
+          }
+
+      - name: Run the script twice (Windows PowerShell 5.1, as Intune does)
+        shell: powershell
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File .\deploy\intune\Set-AIAccountGuardPolicy.ps1
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          powershell -NoProfile -ExecutionPolicy Bypass -File .\deploy\intune\Set-AIAccountGuardPolicy.ps1
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+      - name: Check the registry
+        shell: powershell
+        run: |
+          $failed = 0
+          function Check($ok, $what) {
+            if ($ok) { Write-Output "ok    $what" } else { Write-Output "FAIL  $what"; $script:failed++ }
+          }
+          $id = "jhhgomolhbopcedgcnilbggglnfikmfd"
+          $browsers = @(
+            @{ Name = "Chrome"; Root = "HKLM:\SOFTWARE\Policies\Google\Chrome"; Private = "IncognitoModeAvailability" },
+            @{ Name = "Edge"; Root = "HKLM:\SOFTWARE\Policies\Microsoft\Edge"; Private = "InPrivateModeAvailability" }
+          )
+          foreach ($b in $browsers) {
+            $n = $b.Name
+            $force = "$($b.Root)\ExtensionInstallForcelist"
+            $props = Get-ItemProperty $force
+            $values = @((Get-Item $force).Property | ForEach-Object { $props.$_ })
+            Check ($values -contains "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa;https://example.com/update") "${n}: the other extension is still force-installed"
+            Check (@($values | Where-Object { $_ -like "$id;*" }).Count -eq 1) "${n}: AI Account Guard is listed exactly once after two runs"
+
+            $pol = "$($b.Root)\3rdparty\extensions\$id\policy"
+            Check ((Get-ItemProperty "$pol\AllowedDomains")."1" -eq "example.org") "${n}: AllowedDomains is a list"
+            Check ((Get-ItemProperty $pol).OrganizationName -eq "Example Org") "${n}: strings are written"
+            Check ((Get-ItemProperty $pol).AllowMicrosoftSignIn -eq 1) "${n}: booleans are DWORDs"
+            Check ((Get-ItemProperty "$pol\ProviderModes").deepseek -eq "block") "${n}: ProviderModes is an object"
+            Check ((Get-ItemProperty $b.Root).($b.Private) -eq 1) "${n}: private browsing is off"
+            Check ((Get-ItemProperty $b.Root).BrowserGuestModeEnabled -eq 0) "${n}: guest mode is off"
+          }
+          if ($failed) { Write-Output "$failed check(s) failed"; exit 1 }

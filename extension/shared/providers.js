@@ -157,6 +157,9 @@
   const ENTERPRISE_SSO = /\b(sso|single\s+sign[\s-]*on|saml|enterprise|work\s+account|organization)\b/i;
   // Phone sign-in buttons that don't use a "Continue with" phrase, e.g. "Use phone".
   const PHONE_ONLY = /^(use|with|via)\s+(your\s+|a\s+)?(phone|mobile)(\s+number)?$/i;
+  // "Continue with ..." buttons that use the service's own account (checked by the email
+  // field) rather than a third-party provider.
+  const OWN_ACCOUNT = /\b(e-?mail|username|password|code|magic\s+link|link)\b/i;
 
   // Collapses whitespace and turns styled letters such as "𝕏" into plain "X".
   function normalizeLabel(text) {
@@ -165,21 +168,27 @@
 
   // Classifies a button label as a third-party sign-in. Returns the identity provider object,
   // "enterprise" for company SSO buttons, or null if it isn't a third-party sign-in.
+  // A provider with no entry above (say a new "Continue with LinkedIn") comes back as an
+  // "unknown" provider and is blocked: only Google and Microsoft can be limited to the
+  // organization's accounts, so any other provider can only lead to a personal account.
   function classifySignInLabel(label) {
     label = normalizeLabel(label);
     if (PHONE_ONLY.test(label)) return IDENTITY_PROVIDERS.find((p) => p.id === "phone");
     if (!SSO_VERB.test(label)) return null;
     if (ENTERPRISE_SSO.test(label)) return "enterprise";
-    if (/\bemail\b/i.test(label)) return null;
-    return IDENTITY_PROVIDERS.find((p) => p.match && p.match.test(label.replace(SSO_VERB, " "))) || null;
+    if (OWN_ACCOUNT.test(label)) return null;
+    const rest = label.replace(SSO_VERB, " ");
+    const known = IDENTITY_PROVIDERS.find((p) => p.match && p.match.test(rest));
+    if (known) return known;
+    const name = rest.replace(/^\s*(your|a|an)\s+/i, "").replace(/\s+account$/i, "").trim().slice(0, 40);
+    return { id: "unknown", name: name || "that provider", controllable: false, match: null, requestDomains: [] };
   }
 
-  // True for a label that reads like a third-party sign-in ("Continue with ...") but names a
-  // provider the extension doesn't know, so it would not be blocked. The login-page check
-  // reports these for review.
+  // True for a "Continue with ..." button whose provider has no entry in IDENTITY_PROVIDERS.
+  // It's blocked anyway; the login-page check reports it so it can be given a proper entry.
   function isUnrecognizedSignIn(label) {
-    label = normalizeLabel(label);
-    return SSO_VERB.test(label) && !/\bemail\b/i.test(label) && classifySignInLabel(label) === null;
+    const method = classifySignInLabel(label);
+    return !!method && method.id === "unknown";
   }
 
   function hostMatches(host, domain) {

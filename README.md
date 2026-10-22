@@ -72,15 +72,19 @@ changes in a way that would let a personal sign-in through. See [monitor/README.
 
 ## Known limitations
 
-- **Managed Chrome only.** Other browsers, mobile apps, and desktop AI apps are not covered.
-  Block other browsers with your MDM, and block the ChatGPT/Claude desktop apps if needed.
+- **Managed Chrome and Edge only.** Other browsers, mobile apps, and desktop AI apps are not
+  covered. Block other browsers with your MDM, and block the ChatGPT/Claude desktop apps if needed.
+- **Incognito, InPrivate and guest windows** run without extensions, and no policy can force an
+  extension on there. Turn them off (`IncognitoModeAvailability` / `InPrivateModeAvailability` = 1,
+  `BrowserGuestModeEnabled` = false); the Intune script, Jamf profile and setup page do this by default.
 - **Logged-out use** (e.g. ChatGPT without an account) is not blocked. Set a service to `block`
   if that matters.
 - **Existing sessions** survive install unless `SignOutOnInstall` is on.
 - **A work email is not a company workspace.** Someone can still create a free account with
   their work address. Pair this with each AI vendor's domain verification / enterprise
   account claiming where available.
-- **Passkey sign-in** can't be checked (no email is entered).
+- **Passkey sign-in** can't be checked (no email is entered). "Sign in with passkey" buttons are
+  blocked along with every other third-party sign-in the extension doesn't recognize.
 - AI login pages change. The generic approach handles most redesigns, but the service list and
   button patterns in [extension/shared/providers.js](extension/shared/providers.js) need upkeep.
 

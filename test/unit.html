@@ -157,9 +157,17 @@
       assertEqual(idOf("Continue with SSO"), "enterprise");
       assertEqual(idOf("Continue with email"), null);
       assertEqual(idOf("Login with email"), null);
+      assertEqual(idOf("Continue with magic link"), null);
+      assertEqual(idOf("Sign in with a code"), null);
+      assertEqual(idOf("Log in with username"), null);
       assertEqual(idOf("Continue"), null);
     });
-    test("unrecognized third-party sign-ins are flagged for review", () => {
+    test("unrecognized third-party sign-ins are blocked and named", () => {
+      const m = G.classifySignInLabel("Continue with LinkedIn");
+      assertEqual(m.id, "unknown");
+      assertEqual(m.name, "LinkedIn");
+      assertEqual(G.classifySignInLabel("Sign in with your Yahoo account").name, "Yahoo");
+      assert(!G.identityProviderAllowed("unknown", cfg({ AllowGoogleSignIn: true })), "never allowed");
       assert(G.isUnrecognizedSignIn("Continue with LinkedIn"));
       assert(G.isUnrecognizedSignIn("Sign in with Passkey"));
       assert(!G.isUnrecognizedSignIn("Continue with Google"));

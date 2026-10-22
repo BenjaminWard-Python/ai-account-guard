@@ -34,6 +34,8 @@
       <a href="#" id="xlink">Sign in with X</a>
       <button id="xstyled">Login with 𝕏</button>
       <button id="usephone">Use phone</button>
+      <button id="linkedin">Continue with LinkedIn</button>
+      <button id="magiclink">Continue with magic link</button>
       <button id="unrelated">Send message</button>
     </div>
 
@@ -137,6 +139,11 @@
     test("SSO: X link blocked", () => { reset(); $("xlink").click(); expectBlocked("xlink"); });
     test("SSO: styled 𝕏 button blocked", () => { reset(); $("xstyled").click(); expectBlocked("xstyled"); });
     test("SSO: 'Use phone' button blocked", () => { reset(); $("usephone").click(); expectBlocked("usephone"); });
+    test("SSO: unrecognized provider blocked and named", () => {
+      reset(); $("linkedin").click(); expectBlocked("linkedin");
+      assert(overlay().shadowRoot.textContent.includes("Signing in with LinkedIn isn't allowed"), "names the provider");
+    });
+    test("'Continue with magic link' is the site's own sign-in, not blocked", () => { reset(); $("magiclink").click(); expectAllowed("magiclink"); });
     test("SSO: company SSO button allowed", () => { reset(); $("enterprise").click(); expectAllowed("enterprise"); });
     test("'Continue with email' is not treated as SSO", () => { reset(); $("emailbtn").click(); expectAllowed("emailbtn"); });
     test("unrelated buttons unaffected", () => { reset(); $("unrelated").click(); expectAllowed("unrelated"); });
