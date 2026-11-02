@@ -83,6 +83,26 @@ settings reach only staff signed in to Chrome with their work account, in that p
    [google-admin/extension-policy.json](google-admin/extension-policy.json) after editing it, or
    the settings the [setup page](https://stratitsolutions.com/ai-account-guard/setup/) builds.
 
+## Firefox
+
+Firefox reads policy from a `policies.json` file, not a registry or profile. Use
+[firefox/policies.json](firefox/policies.json): it force-installs the extension (ID
+`ai-account-guard@stratitsolutions.com`) and sets its settings under `3rdparty.Extensions`.
+
+1. Replace `REPLACE-WITH-AMO-SLUG` in `install_url` with the extension's addons.mozilla.org
+   listing slug (or point it at a self-hosted signed `.xpi`), and edit the values.
+2. Put the file where Firefox looks for it: `distribution/policies.json` inside the Firefox
+   install folder, or push it with Firefox's ADMX templates (Windows) or a configuration
+   profile (macOS). See Mozilla's policy documentation for the exact locations.
+3. Restart Firefox and check `about:policies`.
+
+Firefox treats an extension's site access as optional. Until it is granted, the extension
+blocks nothing, and its settings page shows a **Grant access** button. Check this on a
+managed machine before rolling out; I haven't confirmed that a policy can pre-grant it.
+
+Build the upload with `scripts/package-firefox.sh` (it derives the Firefox manifest from the
+Chrome one). The extension ID must never change after the first release.
+
 ## Microsoft Edge
 
 Edge installs AI Account Guard from the Chrome Web Store with the same extension ID and update
@@ -104,6 +124,30 @@ can force them on there, so a sign-in in one of those windows isn't checked. Tur
 The Intune script (`$BlockPrivateBrowsing`), the Jamf profile and the setup page include these
 by default. In the Google Admin console, set **Incognito mode** and **Browser guest mode** in the
 org unit's Chrome browser settings.
+
+## Organization logo (optional)
+
+`OrganizationLogo` puts your logo at the top of block messages. It takes a **PNG** as base64 text,
+raw or as a `data:image/png;base64,` URI, up to 200,000 characters (about a 150 KB file). Anything
+else (SVG, JPEG, a bad paste, too long) is ignored and no logo shows. The templates carry the
+extension's own 128 px icon as a placeholder; replace it with yours. The logo is shown at most
+64 px tall, so a small file is plenty.
+
+Turn a PNG into base64 on one line, copied to the clipboard:
+
+- **macOS (Terminal):**
+  `base64 -i logo.png | tr -d '\n' | pbcopy`
+- **Windows (PowerShell):**
+  `[Convert]::ToBase64String([IO.File]::ReadAllBytes("logo.png")) | Set-Clipboard`
+
+Check the size is under the limit:
+
+- macOS: `base64 -i logo.png | tr -d '\n' | wc -c`
+- PowerShell: `[Convert]::ToBase64String([IO.File]::ReadAllBytes("logo.png")).Length`
+
+Then paste it as the `OrganizationLogo` value in the template (Intune script, Jamf plist or
+profile, Google Admin JSON), or into the logo box on the extension's settings page for an
+unmanaged install. Test it at `chrome://policy`, then trigger a block to see it.
 
 ## Recommended pairings
 

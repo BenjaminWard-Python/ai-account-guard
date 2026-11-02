@@ -1,6 +1,7 @@
-// Background service worker: keeps declarativeNetRequest rules in sync with the current
+// Background service worker (Chrome/Edge) or event page (Firefox): keeps declarativeNetRequest rules in sync with the current
 // config and tracks which tabs are part of an AI sign-in flow.
-importScripts("shared/providers.js", "shared/config.js", "shared/dashboard.js", "shared/rules.js");
+// Firefox has no importScripts; its manifest lists these scripts under background.scripts instead.
+if (typeof importScripts === "function") importScripts("shared/providers.js", "shared/config.js", "shared/dashboard.js", "shared/rules.js");
 
 const G = globalThis.AIGuard;
 const TAGGED_TABS_KEY = "taggedTabs";
@@ -135,7 +136,8 @@ async function signOutIfConfigured() {
     .flatMap((p) => p.domains.map((d) => "https://" + d));
   await chrome.browsingData.remove(
     { origins },
-    { cookies: true, localStorage: true, indexedDB: true, cacheStorage: true, serviceWorkers: true }
+    // Firefox's browsingData has no cacheStorage option.
+    { cookies: true, localStorage: true, indexedDB: true, serviceWorkers: true, ...(G.isFirefox ? {} : { cacheStorage: true }) }
   );
 }
 
@@ -217,14 +219,15 @@ async function sendCheckIn(conn) {
     }
     const ua = navigator.userAgent;
     const edge = /\bEdg\//.test(ua);
-    const browserVersion = (ua.match(edge ? /\bEdg\/([\d.]+)/ : /\bChrome\/([\d.]+)/) || [])[1] || "0";
+    const browserName = G.isFirefox ? "firefox" : edge ? "edge" : "chrome";
+    const browserVersion = (ua.match(G.isFirefox ? /\bFirefox\/([\d.]+)/ : edge ? /\bEdg\/([\d.]+)/ : /\bChrome\/([\d.]+)/) || [])[1] || "0";
     await fetch(`${conn.origin}/api/v1/checkin`, {
       method: "POST",
       headers: { Authorization: `Bearer ${conn.orgKey}`, "Content-Type": "application/json" },
       credentials: "omit",
       body: JSON.stringify({
         deviceId,
-        browser: edge ? "edge" : "chrome",
+        browser: browserName,
         browserVersion,
         extensionVersion: chrome.runtime.getManifest().version,
         installType,

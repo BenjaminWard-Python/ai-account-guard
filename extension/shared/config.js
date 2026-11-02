@@ -13,6 +13,8 @@
     // Empty until an admin sets it; an empty list blocks every sign-in on covered AI services.
     AllowedDomains: [],
     OrganizationName: "",
+    // Optional logo for the block page: a base64-encoded PNG (raw or as a data: URI).
+    OrganizationLogo: "",
     // Where to send people when a sign-in is blocked (e.g. Okta/Entra/Google app portal).
     SsoPortalUrl: "",
     SupportMessage: "",
@@ -31,6 +33,9 @@
     // sessions do not survive the rollout.
     SignOutOnInstall: false,
   });
+
+  // Firefox runs the same code; a few browser APIs differ (see rules.js, background.js, options.js).
+  const isFirefox = !!(root.chrome && chrome.runtime && /^moz-extension:/.test(chrome.runtime.getURL("")));
 
   const POLICY_KEYS = Object.keys(DEFAULTS);
   const MODES = ["enforce", "block", "off"];
@@ -94,6 +99,7 @@
 
     c.OrganizationName = String(c.OrganizationName || "").trim();
     c.SupportMessage = String(c.SupportMessage || "").trim();
+    c.OrganizationLogo = safeLogo(c.OrganizationLogo);
     c.SsoPortalUrl = safeHttpUrl(c.SsoPortalUrl);
     c.MicrosoftTenantId = String(c.MicrosoftTenantId || "").trim();
     c.AllowGoogleSignIn = c.AllowGoogleSignIn === true;
@@ -119,6 +125,20 @@
     } catch (_) {
       return "";
     }
+  }
+
+  const LOGO_PREFIX = "data:image/png;base64,";
+  const PNG_BASE64_SIGNATURE = "iVBORw0KGgo"; // base64 of the 8-byte PNG file signature
+  const MAX_LOGO_CHARS = 200000;
+
+  // Accepts raw base64 or a data:image/png URI and returns a canonical data URI, or ""
+  // if the value is not a plausibly valid PNG. Nothing else can reach an <img src>.
+  function safeLogo(value) {
+    let b64 = String(value || "").replace(/\s+/g, "");
+    if (b64.toLowerCase().startsWith(LOGO_PREFIX)) b64 = b64.slice(LOGO_PREFIX.length);
+    if (!b64 || b64.length > MAX_LOGO_CHARS) return "";
+    if (!/^[A-Za-z0-9+/]+={0,2}$/.test(b64) || !b64.startsWith(PNG_BASE64_SIGNATURE)) return "";
+    return LOGO_PREFIX + b64;
   }
 
   // Which sign-in methods are usable under this config.
@@ -221,7 +241,7 @@
 
     add("Installed by", {
       admin: "Your organization (staff can't remove it)",
-      normal: "This browser's user, from the Chrome Web Store",
+      normal: "This browser's user, from the browser's add-on store",
       development: "A developer (loaded unpacked)",
       sideload: "Another program on this computer",
     }[installType] || "Unknown", installType === "admin" ? "ok" : fromOrg ? "warn" : "");
@@ -281,7 +301,7 @@
       problems.push({
         code: "awaiting-policy",
         text: "Your IT team installed AI Account Guard, but its settings haven't arrived. Until they do, every sign-in on AI services is blocked.",
-        fix: `Open chrome://policy and click Reload policies. If there's no section for ${extensionId || "the extension"}, the settings were never sent: installing the extension doesn't send them. Make the settings file at ${SETUP_URL} and push it with the same tool that installs the extension.`,
+        fix: `${isFirefox ? "Open about:policies and restart Firefox" : "Open chrome://policy and click Reload policies"}. If there's no section for ${extensionId || "the extension"}, the settings were never sent: installing the extension doesn't send them. Make the settings file at ${SETUP_URL} and push it with the same tool that installs the extension.`,
       });
     } else if (source === "default") {
       problems.push({
@@ -336,6 +356,8 @@
     headerDomains,
     normalizeConfig,
     safeHttpUrl,
+    safeLogo,
+    isFirefox,
     identityProviderAllowed,
     getInstallType,
     readManaged,

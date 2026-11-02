@@ -24,6 +24,18 @@
       assertEqual(c.AllowedDomains, []);
       assert(!G.isEmailAllowed("someone@example.org", c));
     });
+    test("logo accepts only PNG base64 and canonicalizes to a data URI", () => {
+      const png = "iVBORw0KGgoAAAANSUhEUg=="; // synthetic PNG-signature stub, not a real image
+      const uri = "data:image/png;base64," + png;
+      assertEqual(G.safeLogo(png), uri);
+      assertEqual(G.safeLogo(uri), uri);
+      assertEqual(G.safeLogo(" " + png.slice(0, 8) + "\n" + png.slice(8)), uri, "whitespace stripped");
+      assertEqual(G.safeLogo("data:image/svg+xml;base64,PHN2Zz4="), "", "not PNG");
+      assertEqual(G.safeLogo("javascript:alert(1)"), "");
+      assertEqual(G.safeLogo("AAAA"), "", "no PNG signature");
+      assertEqual(G.safeLogo("iVBORw0KGgo" + "A".repeat(200000)), "", "too long");
+      assertEqual(G.normalizeConfig({ OrganizationLogo: png }).OrganizationLogo, uri);
+    });
     test("email domain matching is exact and case-insensitive", () => {
       const c = cfg();
       assert(G.isEmailAllowed("ben@example.org", c));

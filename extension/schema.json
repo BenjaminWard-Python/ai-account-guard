@@ -12,6 +12,11 @@
       "description": "Shown to users on block messages.",
       "type": "string"
     },
+    "OrganizationLogo": {
+      "title": "Organization logo",
+      "description": "Optional logo shown on the block page. A base64-encoded PNG, either raw base64 or a data:image/png;base64, URI. Maximum 200,000 characters. Invalid values are ignored.",
+      "type": "string"
+    },
     "SsoPortalUrl": {
       "title": "Company sign-in portal URL",
       "description": "http(s) URL of your SSO portal (e.g. https://myapps.microsoft.com). Shown as a 'Go to company sign-in' button when something is blocked.",

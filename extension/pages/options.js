@@ -4,7 +4,7 @@
   const G = globalThis.AIGuard;
   const $ = (id) => document.getElementById(id);
   const MODE_LABELS = { enforce: "Work accounts only", block: "Block entirely", off: "Not managed" };
-  const TEXT_FIELDS = ["OrganizationName", "SsoPortalUrl", "SupportMessage", "MicrosoftTenantId", "TenantRestrictionScope"];
+  const TEXT_FIELDS = ["OrganizationName", "OrganizationLogo", "SsoPortalUrl", "SupportMessage", "MicrosoftTenantId", "TenantRestrictionScope"];
   const CHECK_FIELDS = ["AllowGoogleSignIn", "AllowMicrosoftSignIn"];
 
   for (const p of G.PROVIDERS) {
@@ -75,7 +75,22 @@
     }));
   }
 
-  $("open-policy").addEventListener("click", () => chrome.tabs.create({ url: "chrome://policy" }));
+  // Firefox won't let an extension open about: pages, so there is no shortcut there.
+  if (G.isFirefox) $("open-policy").hidden = true;
+  else $("open-policy").addEventListener("click", () => chrome.tabs.create({ url: "chrome://policy" }));
+
+  // Firefox treats MV3 host permissions as optional; redirects, header rules and content
+  // scripts do nothing until the user grants them (or policy pre-grants them). Chrome grants
+  // them at install, so contains() is already true there and the notice stays hidden.
+  const origins = chrome.runtime.getManifest().host_permissions;
+  async function refreshAccess() {
+    $("access").hidden = await chrome.permissions.contains({ origins });
+  }
+  $("grant").addEventListener("click", async () => {
+    await chrome.permissions.request({ origins });
+    await refreshAccess();
+  });
+  await refreshAccess();
   $("sync-now").addEventListener("click", async () => {
     $("sync-now").disabled = true;
     $("copy-result").textContent = "Checking…";
