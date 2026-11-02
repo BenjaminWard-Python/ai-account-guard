@@ -169,6 +169,8 @@
         p { margin: 0 0 12px; overflow-wrap: anywhere; }
         .muted { color: #475569; font-size: 14px; }
         .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; flex-wrap: wrap; }
+        .logo { display: block; max-width: 100%; max-height: 48px; margin: 0 0 14px; }
+        .logo[hidden] { display: none; }
         a, button { font: inherit; border-radius: 8px; padding: 8px 14px; cursor: pointer; text-decoration: none; }
         a { background: #1d4ed8; color: #fff; border: 1px solid #1d4ed8; }
         button { background: #fff; color: #0f172a; border: 1px solid #cbd5e1; }
@@ -180,6 +182,7 @@
       </style>
       <div class="backdrop" role="alertdialog" aria-modal="true" aria-labelledby="t">
         <div class="card">
+          <img class="logo" alt="" hidden>
           <h2 id="t"></h2>
           <p class="body"></p>
           <p class="muted domains"></p>
@@ -192,6 +195,12 @@
 
     // Text is set with textContent so config values and typed emails can't inject markup.
     shadow.getElementById("t").textContent = title;
+    if (c.OrganizationLogo) {
+      const logo = shadow.querySelector(".logo");
+      logo.alt = c.OrganizationName;
+      logo.src = c.OrganizationLogo; // validated PNG data URI (see safeLogo in config.js)
+      logo.hidden = false;
+    }
     shadow.querySelector(".body").textContent = body;
     const domainsEl = shadow.querySelector(".domains");
     if (info.kind !== "loading" && domains) domainsEl.textContent = `Approved: ${domains}`;

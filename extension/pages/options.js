@@ -4,7 +4,7 @@
   const G = globalThis.AIGuard;
   const $ = (id) => document.getElementById(id);
   const MODE_LABELS = { enforce: "Work accounts only", block: "Block entirely", off: "Not managed" };
-  const TEXT_FIELDS = ["OrganizationName", "SsoPortalUrl", "SupportMessage", "MicrosoftTenantId", "TenantRestrictionScope"];
+  const TEXT_FIELDS = ["OrganizationName", "OrganizationLogo", "SsoPortalUrl", "SupportMessage", "MicrosoftTenantId", "TenantRestrictionScope"];
   const CHECK_FIELDS = ["AllowGoogleSignIn", "AllowMicrosoftSignIn"];
 
   for (const p of G.PROVIDERS) {

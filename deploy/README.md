@@ -105,6 +105,30 @@ The Intune script (`$BlockPrivateBrowsing`), the Jamf profile and the setup page
 by default. In the Google Admin console, set **Incognito mode** and **Browser guest mode** in the
 org unit's Chrome browser settings.
 
+## Organization logo (optional)
+
+`OrganizationLogo` puts your logo at the top of block messages. It takes a **PNG** as base64 text,
+raw or as a `data:image/png;base64,` URI, up to 200,000 characters (about a 150 KB file). Anything
+else (SVG, JPEG, a bad paste, too long) is ignored and no logo shows. The templates carry the
+extension's own 128 px icon as a placeholder; replace it with yours. The logo is shown at most
+64 px tall, so a small file is plenty.
+
+Turn a PNG into base64 on one line, copied to the clipboard:
+
+- **macOS (Terminal):**
+  `base64 -i logo.png | tr -d '\n' | pbcopy`
+- **Windows (PowerShell):**
+  `[Convert]::ToBase64String([IO.File]::ReadAllBytes("logo.png")) | Set-Clipboard`
+
+Check the size is under the limit:
+
+- macOS: `base64 -i logo.png | tr -d '\n' | wc -c`
+- PowerShell: `[Convert]::ToBase64String([IO.File]::ReadAllBytes("logo.png")).Length`
+
+Then paste it as the `OrganizationLogo` value in the template (Intune script, Jamf plist or
+profile, Google Admin JSON), or into the logo box on the extension's settings page for an
+unmanaged install. Test it at `chrome://policy`, then trigger a block to see it.
+
 ## Recommended pairings
 
 - Block or remove other browsers through your MDM, so Chrome and Edge are the only ways to reach these services.

@@ -13,6 +13,8 @@
     // Empty until an admin sets it; an empty list blocks every sign-in on covered AI services.
     AllowedDomains: [],
     OrganizationName: "",
+    // Optional logo for the block page: a base64-encoded PNG (raw or as a data: URI).
+    OrganizationLogo: "",
     // Where to send people when a sign-in is blocked (e.g. Okta/Entra/Google app portal).
     SsoPortalUrl: "",
     SupportMessage: "",
@@ -94,6 +96,7 @@
 
     c.OrganizationName = String(c.OrganizationName || "").trim();
     c.SupportMessage = String(c.SupportMessage || "").trim();
+    c.OrganizationLogo = safeLogo(c.OrganizationLogo);
     c.SsoPortalUrl = safeHttpUrl(c.SsoPortalUrl);
     c.MicrosoftTenantId = String(c.MicrosoftTenantId || "").trim();
     c.AllowGoogleSignIn = c.AllowGoogleSignIn === true;
@@ -119,6 +122,20 @@
     } catch (_) {
       return "";
     }
+  }
+
+  const LOGO_PREFIX = "data:image/png;base64,";
+  const PNG_BASE64_SIGNATURE = "iVBORw0KGgo"; // base64 of the 8-byte PNG file signature
+  const MAX_LOGO_CHARS = 200000;
+
+  // Accepts raw base64 or a data:image/png URI and returns a canonical data URI, or ""
+  // if the value is not a plausibly valid PNG. Nothing else can reach an <img src>.
+  function safeLogo(value) {
+    let b64 = String(value || "").replace(/\s+/g, "");
+    if (b64.toLowerCase().startsWith(LOGO_PREFIX)) b64 = b64.slice(LOGO_PREFIX.length);
+    if (!b64 || b64.length > MAX_LOGO_CHARS) return "";
+    if (!/^[A-Za-z0-9+/]+={0,2}$/.test(b64) || !b64.startsWith(PNG_BASE64_SIGNATURE)) return "";
+    return LOGO_PREFIX + b64;
   }
 
   // Which sign-in methods are usable under this config.
@@ -336,6 +353,7 @@
     headerDomains,
     normalizeConfig,
     safeHttpUrl,
+    safeLogo,
     identityProviderAllowed,
     getInstallType,
     readManaged,

@@ -10,6 +10,12 @@
 
   const $ = (id) => document.getElementById(id);
 
+  if (config.OrganizationLogo) {
+    $("logo").src = config.OrganizationLogo; // validated PNG data URI (see safeLogo in config.js)
+    $("logo").alt = config.OrganizationName;
+    $("logo").hidden = false;
+  }
+
   if (params.get("reason") === "site" && provider) {
     $("title").textContent = `${provider.name} is blocked`;
     $("body").textContent = `${org} doesn't allow ${provider.name} on this browser.`;
