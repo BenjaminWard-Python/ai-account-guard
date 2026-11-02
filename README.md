@@ -36,6 +36,7 @@ the settings page is read-only.
 |---|---|---|---|
 | `AllowedDomains` | list | *(empty)* | Email domains allowed to sign in. `*.example.org` also allows subdomains. **Must be set**: until it is, every sign-in on covered services is blocked. |
 | `OrganizationName` | string | | Shown in block messages. |
+| `OrganizationLogo` | string | | Logo on block messages: base64 PNG, raw or `data:image/png;base64,` URI, max 200,000 characters. Invalid values are ignored. |
 | `SsoPortalUrl` | string | | Company sign-in portal; shown as "Go to company sign-in". |
 | `SupportMessage` | string | | Extra text on block messages (e.g. how to reach IT). |
 | `AllowGoogleSignIn` | bool | `true` | Allow Sign in with Google, restricted to Workspace accounts in `AllowedDomains`. |

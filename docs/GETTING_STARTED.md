@@ -54,6 +54,7 @@ The ones most organizations set:
 
 - **AllowedDomains**: your email domain(s). Required.
 - **OrganizationName** and **SupportMessage**: shown to users when something is blocked.
+- **OrganizationLogo** (optional): base64 PNG shown at the top of block messages.
 - **SsoPortalUrl**: where "Go to company sign-in" sends people (e.g. `https://myapps.microsoft.com`).
 - **Microsoft 365 shops**: set `AllowMicrosoftSignIn` to true and add your `MicrosoftTenantId`
   (Entra admin center → Overview) so "Sign in with Microsoft" works for work accounts only.

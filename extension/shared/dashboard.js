@@ -103,7 +103,7 @@
         if (MODE_RANK[floor.ProviderModes[p.id]] > MODE_RANK[out.ProviderModes[p.id]]) out.ProviderModes[p.id] = floor.ProviderModes[p.id];
       }
     }
-    for (const k of ["OrganizationName", "SsoPortalUrl", "SupportMessage"]) {
+    for (const k of ["OrganizationName", "OrganizationLogo", "SsoPortalUrl", "SupportMessage"]) {
       if (!out[k] && floor[k]) out[k] = floor[k];
     }
     return out;
