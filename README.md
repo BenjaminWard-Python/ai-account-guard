@@ -68,6 +68,11 @@ extension makes no network requests of its own.
    email domain and save.
 3. Visit chatgpt.com or claude.ai, start signing in with a personal address, and confirm the notice.
 
+**Firefox (142+):** run `scripts/package-firefox.sh`, then in `about:debugging` choose
+**This Firefox → Load Temporary Add-on** and select `dist/firefox/manifest.json`. The same source
+builds both browsers; the script only rewrites the manifest. On the settings page, click
+**Grant access**, because Firefox treats site access as optional.
+
 To test managed policy on a Mac without Jamf, install the profile from
 [deploy/jamf/](deploy/jamf/) with your unpacked extension's ID, then check `chrome://policy`.
 
@@ -81,6 +86,9 @@ python3 -m http.server 8765 --directory .
 
 Then open http://127.0.0.1:8765/test/unit.html (config and network rules) and
 http://127.0.0.1:8765/test/content.html (sign-in blocking against simulated login forms).
+
+Firefox build tests (generated manifest, Firefox-specific code paths; Node 18+, no install):
+`node --test test/firefox.test.mjs`.
 
 A daily check also runs the extension against the real AI sign-in pages and fails when one
 changes in a way that would let a personal sign-in through. See [monitor/README.md](monitor/README.md).
@@ -113,7 +121,7 @@ extension/            The Chrome extension (load this folder)
   content/content.js  On-page email and sign-in button checks
   shared/             Service catalog, config handling, rule builder (shared by all parts)
   pages/              Block page and settings page
-deploy/               Intune, Jamf, and Google Admin templates
+deploy/               Intune, Jamf, Google Admin, and Firefox templates
 test/                 In-browser tests
 monitor/              Daily check against the real AI sign-in pages (runs in GitHub Actions)
 ```

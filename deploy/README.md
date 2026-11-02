@@ -83,6 +83,26 @@ settings reach only staff signed in to Chrome with their work account, in that p
    [google-admin/extension-policy.json](google-admin/extension-policy.json) after editing it, or
    the settings the [setup page](https://stratitsolutions.com/ai-account-guard/setup/) builds.
 
+## Firefox
+
+Firefox reads policy from a `policies.json` file, not a registry or profile. Use
+[firefox/policies.json](firefox/policies.json): it force-installs the extension (ID
+`ai-account-guard@stratitsolutions.com`) and sets its settings under `3rdparty.Extensions`.
+
+1. Replace `REPLACE-WITH-AMO-SLUG` in `install_url` with the extension's addons.mozilla.org
+   listing slug (or point it at a self-hosted signed `.xpi`), and edit the values.
+2. Put the file where Firefox looks for it: `distribution/policies.json` inside the Firefox
+   install folder, or push it with Firefox's ADMX templates (Windows) or a configuration
+   profile (macOS). See Mozilla's policy documentation for the exact locations.
+3. Restart Firefox and check `about:policies`.
+
+Firefox treats an extension's site access as optional. Until it is granted, the extension
+blocks nothing, and its settings page shows a **Grant access** button. Check this on a
+managed machine before rolling out; I haven't confirmed that a policy can pre-grant it.
+
+Build the upload with `scripts/package-firefox.sh` (it derives the Firefox manifest from the
+Chrome one). The extension ID must never change after the first release.
+
 ## Microsoft Edge
 
 Edge installs AI Account Guard from the Chrome Web Store with the same extension ID and update

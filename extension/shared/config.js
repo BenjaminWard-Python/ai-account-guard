@@ -34,6 +34,9 @@
     SignOutOnInstall: false,
   });
 
+  // Firefox runs the same code; a few browser APIs differ (see rules.js, background.js, options.js).
+  const isFirefox = !!(root.chrome && chrome.runtime && /^moz-extension:/.test(chrome.runtime.getURL("")));
+
   const POLICY_KEYS = Object.keys(DEFAULTS);
   const MODES = ["enforce", "block", "off"];
   const SCOPES = ["ai-sites", "all-browsing"];
@@ -238,7 +241,7 @@
 
     add("Installed by", {
       admin: "Your organization (staff can't remove it)",
-      normal: "This browser's user, from the Chrome Web Store",
+      normal: "This browser's user, from the browser's add-on store",
       development: "A developer (loaded unpacked)",
       sideload: "Another program on this computer",
     }[installType] || "Unknown", installType === "admin" ? "ok" : fromOrg ? "warn" : "");
@@ -298,7 +301,7 @@
       problems.push({
         code: "awaiting-policy",
         text: "Your IT team installed AI Account Guard, but its settings haven't arrived. Until they do, every sign-in on AI services is blocked.",
-        fix: `Open chrome://policy and click Reload policies. If there's no section for ${extensionId || "the extension"}, the settings were never sent: installing the extension doesn't send them. Make the settings file at ${SETUP_URL} and push it with the same tool that installs the extension.`,
+        fix: `${isFirefox ? "Open about:policies and restart Firefox" : "Open chrome://policy and click Reload policies"}. If there's no section for ${extensionId || "the extension"}, the settings were never sent: installing the extension doesn't send them. Make the settings file at ${SETUP_URL} and push it with the same tool that installs the extension.`,
       });
     } else if (source === "default") {
       problems.push({
@@ -354,6 +357,7 @@
     normalizeConfig,
     safeHttpUrl,
     safeLogo,
+    isFirefox,
     identityProviderAllowed,
     getInstallType,
     readManaged,

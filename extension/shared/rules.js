@@ -11,10 +11,11 @@
   const G = root.AIGuard;
   const BLOCK_PAGE = "/pages/blocked.html";
   const SESSION_ID_OFFSET = 10000;
+  // Firefox rejects the "webtransport" and "webbundle" resource types.
   const ALL_RESOURCE_TYPES = [
     "main_frame", "sub_frame", "stylesheet", "script", "image", "font", "object",
-    "xmlhttprequest", "ping", "csp_report", "media", "websocket", "webtransport",
-    "webbundle", "other",
+    "xmlhttprequest", "ping", "csp_report", "media", "websocket",
+    ...(G.isFirefox ? [] : ["webtransport", "webbundle"]), "other",
   ];
 
   function enforcedProviders(config) {
