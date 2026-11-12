@@ -136,6 +136,48 @@ URL, but reads its own policies: `HKLM\SOFTWARE\Policies\Microsoft\Edge` on Wind
 preference domains on macOS. The Intune script and Jamf profile set up both browsers; the
 Google Admin console manages Chrome only. Check Edge at `edge://policy`.
 
+## Different settings for different groups
+
+To give some staff access that others don't get (for example, only an approved group may use
+ChatGPT with their work account, and it's blocked for everyone else), deploy two versions of the
+settings and assign each to a group. Your group membership is then the list of who's allowed:
+move someone in or out of the group, and their settings follow. Nothing in the extension changes.
+
+For the ChatGPT example:
+
+| | Everyone | Approved group |
+|---|---|---|
+| ChatGPT (`ProviderModes` → `chatgpt`) | `block` | `enforce` (work accounts only) |
+| Every other setting | your normal settings | the same |
+
+Use `block`, not `enforce`, for people who shouldn't use a service at all. Some services, such
+as ChatGPT, can be used without signing in, and `enforce` only checks sign-ins.
+
+On the [setup page](https://stratitsolutions.com/ai-account-guard/setup/), fill the form in
+once and download the file, then change only that service's mode and download it again.
+
+The settings apply to the **whole computer** (and the whole browser), not to whoever is signed
+in to it. That's fine where each person has their own computer; on a shared computer, the
+computer's group decides.
+
+Make sure a computer gets only one of the two versions; otherwise whichever arrives last wins:
+
+- **Intune:** add the script twice, once per version. Assign the everyone version to all users
+  (or devices) and **exclude** the approved group; assign the approved version to the approved
+  group. Use the same kind of group (users or devices) for including and excluding.
+- **Group Policy:** keep your normal GPO for everyone. Add a second GPO linked to the same OU
+  that configures only the service that differs (for example **AI services → ChatGPT** =
+  *Work accounts only*, in both the **Google Chrome** and **Microsoft Edge** folders), filter it to a security group of the approved users' **computers**
+  (these are computer settings, so filter on computers, not users), and give it link order 1
+  so it wins over the normal GPO.
+- **Jamf Pro:** upload two profiles. Scope the everyone version to all computers with the
+  approved group under **Exclusions**, and the approved version to the approved group.
+- **Google Admin console:** put the approved staff (or their enrolled browsers) in a child org
+  unit, and paste the approved version into the extension's **Policy for extensions** box there.
+
+After moving someone between groups, check `chrome://policy` or `edge://policy` on their
+computer (click **Reload policies**) to confirm the new value arrived.
+
 ## Private browsing
 
 Extensions don't run in incognito (Chrome), InPrivate (Edge) or guest windows, and no policy
