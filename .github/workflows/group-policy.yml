@@ -1,0 +1,27 @@
+# Checks the Group Policy template (deploy/group-policy/) against Microsoft's ADMX schema and
+# against the extension's own settings, so it can't drift from schema.json or providers.js.
+name: Group Policy template check
+
+on:
+  push:
+    paths:
+      - "deploy/group-policy/**"
+      - "scripts/build-group-policy.py"
+      - "test/check_group_policy.py"
+      - "extension/schema.json"
+      - "extension/shared/providers.js"
+      - ".github/workflows/group-policy.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install xmllint
+        run: sudo apt-get update && sudo apt-get install -y libxml2-utils
+      - name: Check the template
+        run: python3 test/check_group_policy.py

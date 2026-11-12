@@ -31,6 +31,51 @@ re-run: rerunning it replaces the extension's settings and leaves other force-in
 extensions alone. It's tested on Windows in
 [.github/workflows/intune-script.yml](../.github/workflows/intune-script.yml).
 
+## Active Directory Group Policy (Windows)
+
+Use the administrative template in [group-policy/](group-policy/): `AIAccountGuard.admx`, with
+`en-US` and `nl-NL` language files. It puts every setting in the Group Policy Editor under
+**Computer Configuration → Policies → Administrative Templates → AI Account Guard**, with a
+folder each for **Google Chrome** and **Microsoft Edge**. Each service mode (ChatGPT, Claude,
+Gemini…) is its own setting in the browser's **AI services** folder.
+
+The template sets the extension's settings only. Force-install the extension as you already do
+for other extensions, for example with Chrome's and Edge's own templates
+(**Configure the list of force-installed apps and extensions**), using
+`jhhgomolhbopcedgcnilbggglnfikmfd;https://clients2.google.com/service/update2/crx` for both
+browsers.
+
+1. Copy `AIAccountGuard.admx` to the central store,
+   `\\<domain>\SYSVOL\<domain>\Policies\PolicyDefinitions\`, and each language folder's
+   `AIAccountGuard.adml` to the folder of the same name there (`en-US\`, `nl-NL\`). Always copy
+   `en-US`: the editor falls back to it. Without a central store, use
+   `C:\Windows\PolicyDefinitions\` on the machine where you edit policies.
+2. Open (or create) a GPO linked to your computers, then go to **Computer Configuration →
+   Policies → Administrative Templates → AI Account Guard → Google Chrome** (and **Microsoft
+   Edge**). Configure at least **Allowed email domains**.
+3. Run `gpupdate /force` on a test machine and check `chrome://policy` and `edge://policy`
+   (click **Reload policies**).
+
+Each setting writes the same registry values as the Intune script, under
+`HKLM\SOFTWARE\Policies\Google\Chrome\3rdparty\extensions\jhhgomolhbopcedgcnilbggglnfikmfd\policy`
+for Chrome and the matching `Microsoft\Edge` path for Edge:
+
+| Setting | Registry value |
+|---|---|
+| `OrganizationName`, `SsoPortalUrl`, `SupportMessage`, `MicrosoftTenantId`, `TenantRestrictionScope` | REG_SZ value |
+| `AllowGoogleSignIn`, `AllowMicrosoftSignIn`, `SignOutOnInstall` | REG_DWORD value, 1 or 0 |
+| `AllowedDomains` | subkey `AllowedDomains` with REG_SZ values named `1`, `2`, `3`… |
+| `ProviderModes` | subkey `ProviderModes` with a REG_SZ value per service ID (`chatgpt`, `claude`…): `enforce`, `block` or `off` |
+
+Disabling or not configuring a setting leaves the extension's default (see the main README),
+except the three on/off settings, where **Disabled** writes 0.
+
+The template is generated from the extension's settings schema by
+[scripts/build-group-policy.py](../scripts/build-group-policy.py); don't edit it by hand.
+[test/check_group_policy.py](../test/check_group_policy.py) checks it against Microsoft's ADMX
+schema and against the extension's settings, in
+[.github/workflows/group-policy.yml](../.github/workflows/group-policy.yml).
+
 ## Jamf Pro (macOS)
 
 Use [jamf/ai-account-guard.mobileconfig](jamf/ai-account-guard.mobileconfig):

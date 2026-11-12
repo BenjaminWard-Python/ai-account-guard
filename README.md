@@ -81,6 +81,9 @@ python3 -m http.server 8765 --directory .
 Then open http://127.0.0.1:8765/test/unit.html (config and network rules) and
 http://127.0.0.1:8765/test/content.html (sign-in blocking against simulated login forms).
 
+`python3 test/check_group_policy.py` checks the Group Policy template against Microsoft's ADMX
+schema and the extension's settings (needs `xmllint`).
+
 A daily check also runs the extension against the real AI sign-in pages and fails when one
 changes in a way that would let a personal sign-in through. See [monitor/README.md](monitor/README.md).
 
@@ -112,7 +115,7 @@ extension/            The Chrome extension (load this folder)
   content/content.js  On-page email and sign-in button checks
   shared/             Service catalog, config handling, rule builder (shared by all parts)
   pages/              Block page and settings page
-deploy/               Intune, Jamf, and Google Admin templates
+deploy/               Intune, Group Policy (ADMX), Jamf, and Google Admin templates
 test/                 In-browser tests
 monitor/              Daily check against the real AI sign-in pages (runs in GitHub Actions)
 ```
